@@ -36,9 +36,11 @@ class Kubernetes:
             md = pod.metadata
             status = pod.status
             containers = {}
-            for container_status in status.container_statuses:
-                if container_status.container_id is not None:
-                    containers[container_status.container_id.replace("docker://", "")] = container_status.name
+            for statuses in (status.container_statuses, status.init_container_statuses):
+                if statuses is not None:
+                    for container_status in statuses:
+                        if container_status.container_id is not None:
+                            containers[container_status.container_id.replace("docker://", "")] = container_status.name
             results[md.uid] = {
                 'namespace': md.namespace,
                 'pod_name': md.name,
