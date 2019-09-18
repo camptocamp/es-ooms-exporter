@@ -7,6 +7,7 @@ import logging
 import os
 
 LOG = logging.getLogger(__name__)
+NAMESPACE = os.environ.get('NAMESPACE')
 
 
 class Kubernetes:
@@ -18,23 +19,31 @@ class Kubernetes:
         self.api = ApiClient()
 
     def get_pod_infos(self):
-        v1 = CoreV1Api(self.api)
+        if NAMESPACE is None:
+            results = {}
+            namespaces = self.get_namespaces()
+            for namespace in namespaces:
+                results.update(self._get_pod_infos_ns(namespace))
+            return results
+        else:
+            return self._get_pod_infos_ns(NAMESPACE)
 
+    def _get_pod_infos_ns(self, namespace):
+        v1 = CoreV1Api(self.api)
         results = {}
-        for namespace in self.get_namespaces():
-            pods: V1PodList = v1.list_namespaced_pod(namespace)
-            for pod in pods.items:
-                md = pod.metadata
-                status = pod.status
-                containers = {}
-                for container_status in status.container_statuses:
-                    if container_status.container_id is not None:
-                        containers[container_status.container_id.replace("docker://", "")] = container_status.name
-                results[md.uid] = {
-                    'namespace': md.namespace,
-                    'pod_name': md.name,
-                    'containers': containers
-                }
+        pods: V1PodList = v1.list_namespaced_pod(namespace)
+        for pod in pods.items:
+            md = pod.metadata
+            status = pod.status
+            containers = {}
+            for container_status in status.container_statuses:
+                if container_status.container_id is not None:
+                    containers[container_status.container_id.replace("docker://", "")] = container_status.name
+            results[md.uid] = {
+                'namespace': md.namespace,
+                'pod_name': md.name,
+                'containers': containers
+            }
         return results
 
     def get_namespaces(self):
