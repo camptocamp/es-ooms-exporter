@@ -3,8 +3,10 @@ from es_oom_exporter.es import ElasticSearch
 from es_oom_exporter.kube import Kubernetes
 import logging
 import prometheus_client
-import prometheus_client.core
+from prometheus_client.core import GaugeMetricFamily
 import time
+
+LABELS = ['namespace', 'pod', 'container', 'process']
 
 LOG = logging.getLogger('es_oom_exporter')
 
@@ -18,9 +20,14 @@ class OomsCollector:
         pod_infos = self.kube.get_pod_infos()
         ooms = self.es.get_ooms(pod_infos)
         LOG.info(ooms)
-        g_container = prometheus_client.core.GaugeMetricFamily('pod_process_oom', "OOM events in a POD's container",
-                                                               labels=['namespace', 'pod', 'container', 'process'])
+        g_oom = GaugeMetricFamily('pod_process_oom',
+                                  "OOM events in a POD's container",
+                                  labels=LABELS)
+        g_rss = GaugeMetricFamily('pod_process_oom_rss',
+                                  "RSS in bytes before an OOM events in a POD's container",
+                                  labels=LABELS)
         count_containers = {}
+        rss_containers = {}
         for oom in ooms:
             if 'container' in oom:
                 key = tuple(oom[k] for k in ('namespace', 'pod_name', 'container', 'process'))
@@ -28,10 +35,14 @@ class OomsCollector:
                     count_containers[key] += 1
                 else:
                     count_containers[key] = 1
+                rss_containers[key] = max(rss_containers.get(key, 0), oom['rss'])
 
-        for key, count in count_containers.items():
-            g_container.add_metric(labels=key, value=count)
-        yield g_container
+        for key in count_containers.keys():
+            g_oom.add_metric(labels=key, value=count_containers[key])
+            g_rss.add_metric(labels=key, value=rss_containers[key])
+
+        yield g_oom
+        yield g_rss
 
 
 def main():
@@ -42,7 +53,6 @@ def main():
     prometheus_client.REGISTRY.register(OomsCollector(kube, es))
     while True:
         time.sleep(10)
-
 
 
 main()

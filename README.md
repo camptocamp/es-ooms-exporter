@@ -11,10 +11,13 @@ docker run -ti --rm -p 8080:8080 \
   camptocamp/es-ooms-exporter
 ```
 
-configuration variables:
+Configuration variables:
 
 * ES_URL: Base URL of elasticsearch
 * ES_AUTH: Optional auth string for elasticsearch
 * ES_INDEXES: Optional index to use
 * NAMESPACE: Kubernetes namespace to use (by default, uses all
              the OpenShift projects)
+
+Will detect automatically if run from within kubernetes or from the outside
+(uses the current context)

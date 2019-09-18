@@ -8,8 +8,16 @@ import requests
 from es_oom_exporter.utils import ensure_slash
 
 LOG = logging.getLogger(__name__)
-POD_RE = re.compile(r".*kernel: Memory cgroup stats for /kubepods\.slice/kubepods-burstable\.slice/kubepods-burstable-pod([0-9a-f_]*)\.slice/docker-([0-9a-f]*)\.scope: .*")
+POD_RE = re.compile(r".*kernel: Memory cgroup stats for /kubepods\.slice/kubepods-burstable\.slice/"
+                    r"kubepods-burstable-pod([0-9a-f_]*)\.slice/docker-([0-9a-f]*)\.scope:.* rss:(\d+[KMG]B).*")
 OOM_RE = re.compile(r".*kernel: Memory cgroup out of memory: Kill process \d+ \(([^)]+)\) score \d+ or sacrifice child")
+SIZE_RE = re.compile(r"^(\d+)([KMG])B$")
+SIZES = {
+    'K': 1024,
+    'M': 1024 * 1024,
+    'G': 1024 * 1024 * 1024
+}
+
 
 class ElasticSearch:
     def __init__(self):
@@ -107,7 +115,8 @@ class ElasticSearch:
                 pod_match = POD_RE.match(message)
                 if pod_match:
                     # LOG.debug("Found POD info: %s %s", pod_match.group(1), pod_match.group(2))
-                    cur = dict(pod_uid=pod_match.group(1).replace("_", "-"), container_id=pod_match.group(2))
+                    cur = dict(pod_uid=pod_match.group(1).replace("_", "-"), container_id=pod_match.group(2),
+                               rss=_get_size(pod_match.group(3)))
                 else:
                     oom_match = OOM_RE.match(message)
                     if oom_match:
@@ -125,3 +134,9 @@ class ElasticSearch:
                             ooms.append(cur)
                             cur = None
             return ooms
+
+
+def _get_size(txt):
+    matcher = SIZE_RE.match(txt)
+    assert matcher, "Cannot parse " + txt
+    return int(matcher.group(1)) * SIZES[matcher.group(2)]
