@@ -169,7 +169,7 @@ class ElasticSearch:
             }
         }
         if self.last_timestamp is not None:
-            query['query']['bool']['filter'].append({
+            query['query']['bool']['filter'].append({  # type: ignore
                 "range": {
                     "@timestamp": {
                         "gt": self.last_timestamp,
