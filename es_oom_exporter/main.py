@@ -55,8 +55,8 @@ def main():
     logging.getLogger('kubernetes').setLevel(logging.INFO)
     es = ElasticSearch()
     kube = Kubernetes()
-    prometheus_client.start_http_server(port=8080)
     prometheus_client.REGISTRY.register(OomsCollector(kube, es))
+    prometheus_client.start_http_server(port=8080)
     while True:
         time.sleep(10)
 

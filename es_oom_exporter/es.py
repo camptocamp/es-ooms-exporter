@@ -76,7 +76,7 @@ class Oom:
         return self._container is not None
 
     def get_key(self):
-        return self._namespace, self._pod_name, self._container
+        return self._namespace, self._pod_name, self._container, self._process
 
     def get_rss(self):
         return sum(self._containers_rss.values())
@@ -85,7 +85,7 @@ class Oom:
         return self._containers_rss.get(self._container_uid, 0)
 
     def __str__(self):
-        return f"{self._namespace}/{self._pod_name}/{self._container}={self._containers_rss.get(self._container_uid)}"
+        return f"{'/'.join(self.get_key())}={self._containers_rss.get(self._container_uid)}"
 
     def __repr__(self):
         return f"Oom({str(self)})"
