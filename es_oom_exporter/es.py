@@ -2,21 +2,93 @@ import logging
 import os
 import re
 import time
+from typing import Dict, List
 
 import requests
 
 from es_oom_exporter.utils import ensure_slash
 
+# Interesting messages during an OOM event:
+# Sep 19 08:35:40 ip-10-10-10-56 kernel: Task in /kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod12be0f08_da27_11e9_99ac_069044000888.slice/docker-4304197e5a46240357356250fcaf602bb4930f1b87157b73ae5e240f4a67a150.scope killed as a result of limit of /kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod12be0f08_da27_11e9_99ac_069044000888.slice
+# Sep 19 08:35:40 ip-10-10-10-56 kernel: Memory cgroup stats for /kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod12be0f08_da27_11e9_99ac_069044000888.slice/docker-f7b79d53414f335b713db094565061726ff3c1237859d756392a3d7198fa0e2c.scope: cache:0KB rss:388KB rss_huge:0KB mapped_file:0KB swap:0KB inactive_anon:0KB active_anon:388KB inactive_file:0KB active_file:0KB unevictable:0KB
+# Sep 19 08:35:40 ip-10-10-10-56 kernel: Memory cgroup stats for /kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod12be0f08_da27_11e9_99ac_069044000888.slice/docker-4304197e5a46240357356250fcaf602bb4930f1b87157b73ae5e240f4a67a150.scope: cache:92KB rss:81440KB rss_huge:0KB mapped_file:60KB swap:0KB inactive_anon:28KB active_anon:81464KB inactive_file:4KB active_file:36KB unevictable:0KB
+# Sep 19 08:35:40 ip-10-10-10-56 kernel: Memory cgroup out of memory: Kill process 99190 (apache2) score 1534 or sacrifice child
+
 LOG = logging.getLogger(__name__)
-POD_RE = re.compile(r".*kernel: Memory cgroup stats for /kubepods\.slice/kubepods-burstable\.slice/"
-                    r"kubepods-burstable-pod([0-9a-f_]*)\.slice/docker-([0-9a-f]*)\.scope:.* rss:(\d+[KMG]B).*")
-OOM_RE = re.compile(r".*kernel: Memory cgroup out of memory: Kill process \d+ \(([^)]+)\) score \d+ or sacrifice child")
+START_RE = re.compile(r".* ([^ ]+) kernel: Task in /kubepods\.slice/kubepods-burstable\.slice/"
+                      r"kubepods-burstable-pod([0-9a-f_]*)\.slice/docker-([0-9a-f]*)\.scope killed as a result of "
+                      r"limit of /kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod[0-9a-f_]*\.slice")
+CONTAINER_RE = re.compile(r".* ([^ ]+) kernel: Memory cgroup stats for /kubepods\.slice/kubepods-burstable\.slice/"
+                          r"kubepods-burstable-pod([0-9a-f_]*)\.slice/docker-([0-9a-f]*)\.scope:.* rss:(\d+[KMG]B).*")
+OOM_RE = re.compile(r".* ([^ ]+) kernel: Memory cgroup out of memory: Kill process \d+ \(([^)]+)\) "
+                    r"score \d+ or sacrifice child")
 SIZE_RE = re.compile(r"^(\d+)([KMG])B$")
 SIZES = {
     'K': 1024,
     'M': 1024 * 1024,
     'G': 1024 * 1024 * 1024
 }
+
+
+class Oom:
+    def __init__(self):
+        self._pod_uid = None
+        self._process = None
+        self._when = None
+        self._container_uid = None
+        self._containers_rss = {}
+        self._pod_name = None
+        self._namespace = None
+        self._container = None
+
+    def add_start_info(self, matcher, pod_infos):
+        pod_uid = matcher.group(2).replace("_", "-")
+        if self._pod_uid is not None:
+            LOG.warning("Inconsistent logs (twice the start): %s", matcher.group(0))
+            return
+        self._pod_uid = pod_uid
+        self._container_uid = matcher.group(3)
+        pod_info = pod_infos.get(pod_uid)
+        if pod_info is not None:
+            self._pod_name = pod_info['pod_name']
+            self._namespace = pod_info['namespace']
+            container_info = pod_info['containers'].get(self._container_uid)
+            if container_info is not None:
+                self._container = container_info
+            else:
+                LOG.info("Didn't find container info for %s", matcher.group(0))
+        else:
+            LOG.info("Didn't find POD info for %s", matcher.group(0))
+
+    def add_pod_info(self, matcher):
+        pod_uid = matcher.group(2).replace("_", "-")
+        if pod_uid != self._pod_uid:
+            LOG.warning("Inconsistent logs (different PODs): %s", matcher.group(0))
+            return
+
+        rss = _get_size(matcher.group(4))
+        container_uid = matcher.group(3)
+        self._containers_rss[container_uid] = rss
+
+    def add_oom_info(self, matcher, timestamp) -> bool:
+        self._process = matcher.group(2)
+        self._when = timestamp
+        return self._container is not None
+
+    def get_key(self):
+        return self._namespace, self._pod_name, self._container
+
+    def get_rss(self):
+        return sum(self._containers_rss.values())
+
+    def get_killed_rss(self):
+        return self._containers_rss.get(self._container_uid, 0)
+
+    def __str__(self):
+        return f"{self._namespace}/{self._pod_name}/{self._container}={self._containers_rss.get(self._container_uid)}"
+
+    def __repr__(self):
+        return f"Oom({str(self)})"
 
 
 class ElasticSearch:
@@ -34,13 +106,13 @@ class ElasticSearch:
         self.search_url = f"{es_url}{es_indexes}/_search"
         self.last_timestamp = int(time.time() * 1000)
 
-    def get_ooms(self, pod_infos):
+    def get_ooms(self, kube) -> List[Oom]:
         query = {
             "version": True,
             "size": 500,
             "sort": [
                 {
-                    "@timestamp": {
+                    "log.offset": {
                         "order": "asc",
                         "unmapped_type": "boolean"
                     }
@@ -83,6 +155,10 @@ class ElasticSearch:
                                         "match_phrase": {
                                             "message": "Memory cgroup out of memory"
                                         }
+                                    }, {
+                                        "match_phrase": {
+                                            "message": "killed as a result of limit of"
+                                        }
                                     }
                                 ],
                                 "minimum_should_match": 1
@@ -106,34 +182,36 @@ class ElasticSearch:
                 LOG.warning("Error from ES: %s", r.text)
             r.raise_for_status()
             json = r.json()
-            cur = None
+            hits = json['hits']['hits']
+            if len(hits) == 0:
+                return []
+            pod_infos = kube.get_pod_infos()
+            cur_by_host: Dict[str, Oom] = {}
             ooms = []
-            for hit in json['hits']['hits']:
+            for hit in hits:
                 timestamp = int(hit['fields']['@timestamp'][0])
                 self.last_timestamp = timestamp
                 message = hit['_source']['message']
-                pod_match = POD_RE.match(message)
+                start_match = START_RE.match(message)
+                pod_match = CONTAINER_RE.match(message)
+                oom_match = OOM_RE.match(message)
+                if start_match:
+                    _get_cur(cur_by_host, start_match.group(1)).add_start_info(start_match, pod_infos)
                 if pod_match:
-                    # LOG.debug("Found POD info: %s %s", pod_match.group(1), pod_match.group(2))
-                    cur = dict(pod_uid=pod_match.group(1).replace("_", "-"), container_id=pod_match.group(2),
-                               rss=_get_size(pod_match.group(3)))
-                else:
-                    oom_match = OOM_RE.match(message)
-                    if oom_match:
-                        # LOG.debug("Found OOM info: %s", oom_match.group(1))
-                        if cur is not None:
-                            cur['process'] = oom_match.group(1)
-                            cur['when'] = timestamp
-                            pod_info = pod_infos.get(cur['pod_uid'])
-                            if pod_info is not None:
-                                cur['pod_name'] = pod_info['pod_name']
-                                cur['namespace'] = pod_info['namespace']
-                                container_info = pod_info['containers'].get(cur['container_id'])
-                                if container_info is not None:
-                                    cur['container'] = container_info
-                            ooms.append(cur)
-                            cur = None
+                    _get_cur(cur_by_host, pod_match.group(1)).add_pod_info(pod_match)
+                elif oom_match:
+                    cur = cur_by_host.pop(oom_match.group(1), None)
+                    if cur is not None and cur.add_oom_info(oom_match, timestamp):
+                        ooms.append(cur)
             return ooms
+
+
+def _get_cur(cur_by_host: Dict[str, Oom], host) -> Oom:
+    cur = cur_by_host.get(host)
+    if cur is None:
+        cur = Oom()
+        cur_by_host[host] = cur
+    return cur
 
 
 def _get_size(txt):

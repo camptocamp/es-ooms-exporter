@@ -1,10 +1,11 @@
 from c2cwsgiutils import setup_process  # noqa  # pylint: disable=unused-import
-from es_oom_exporter.es import ElasticSearch
+from es_oom_exporter.es import ElasticSearch, Oom
 from es_oom_exporter.kube import Kubernetes
 import logging
 import prometheus_client
 from prometheus_client.core import GaugeMetricFamily
 import time
+from typing import List
 
 LABELS = ['namespace', 'pod', 'container', 'process']
 
@@ -17,31 +18,36 @@ class OomsCollector:
         self.es = es
 
     def collect(self):
-        pod_infos = self.kube.get_pod_infos()
-        ooms = self.es.get_ooms(pod_infos)
+        ooms: List[Oom] = self.es.get_ooms(self.kube)
         LOG.info(ooms)
         g_oom = GaugeMetricFamily('pod_process_oom',
                                   "OOM events in a POD's container",
                                   labels=LABELS)
+        g_rss_killed = GaugeMetricFamily('pod_process_oom_rss_container',
+                                         "RSS in bytes before an OOM events in a POD's container",
+                                         labels=LABELS)
         g_rss = GaugeMetricFamily('pod_process_oom_rss',
                                   "RSS in bytes before an OOM events in a POD's container",
                                   labels=LABELS)
         count_containers = {}
         rss_containers = {}
+        rss_killed_container = {}
         for oom in ooms:
-            if 'container' in oom:
-                key = tuple(oom[k] for k in ('namespace', 'pod_name', 'container', 'process'))
-                if key in count_containers:
-                    count_containers[key] += 1
-                else:
-                    count_containers[key] = 1
-                rss_containers[key] = max(rss_containers.get(key, 0), oom['rss'])
+            key = oom.get_key()
+            if key in count_containers:
+                count_containers[key] += 1
+            else:
+                count_containers[key] = 1
+            rss_containers[key] = max(rss_containers.get(key, 0), oom.get_rss())
+            rss_killed_container[key] = max(rss_killed_container.get(key, 0), oom.get_killed_rss())
 
         for key in count_containers.keys():
             g_oom.add_metric(labels=key, value=count_containers[key])
             g_rss.add_metric(labels=key, value=rss_containers[key])
+            g_rss_killed.add_metric(labels=key, value=rss_killed_container[key])
 
         yield g_oom
+        yield g_rss_killed
         yield g_rss
 
 
