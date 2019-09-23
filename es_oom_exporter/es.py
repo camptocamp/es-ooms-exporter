@@ -9,10 +9,10 @@ import requests
 from es_oom_exporter.utils import ensure_slash
 
 # Interesting messages during an OOM event:
-# Sep 19 08:35:40 ip-10-10-10-56 kernel: Task in /kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod12be0f08_da27_11e9_99ac_069044000888.slice/docker-4304197e5a46240357356250fcaf602bb4930f1b87157b73ae5e240f4a67a150.scope killed as a result of limit of /kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod12be0f08_da27_11e9_99ac_069044000888.slice
-# Sep 19 08:35:40 ip-10-10-10-56 kernel: Memory cgroup stats for /kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod12be0f08_da27_11e9_99ac_069044000888.slice/docker-f7b79d53414f335b713db094565061726ff3c1237859d756392a3d7198fa0e2c.scope: cache:0KB rss:388KB rss_huge:0KB mapped_file:0KB swap:0KB inactive_anon:0KB active_anon:388KB inactive_file:0KB active_file:0KB unevictable:0KB
-# Sep 19 08:35:40 ip-10-10-10-56 kernel: Memory cgroup stats for /kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod12be0f08_da27_11e9_99ac_069044000888.slice/docker-4304197e5a46240357356250fcaf602bb4930f1b87157b73ae5e240f4a67a150.scope: cache:92KB rss:81440KB rss_huge:0KB mapped_file:60KB swap:0KB inactive_anon:28KB active_anon:81464KB inactive_file:4KB active_file:36KB unevictable:0KB
-# Sep 19 08:35:40 ip-10-10-10-56 kernel: Memory cgroup out of memory: Kill process 99190 (apache2) score 1534 or sacrifice child
+# Sep 19 08:35:40 ip-10-10-10-56 kernel: Task in /kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod12be0f08_da27_11e9_99ac_069044000888.slice/docker-4304197e5a46240357356250fcaf602bb4930f1b87157b73ae5e240f4a67a150.scope killed as a result of limit of /kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod12be0f08_da27_11e9_99ac_069044000888.slice  # noqa: E501
+# Sep 19 08:35:40 ip-10-10-10-56 kernel: Memory cgroup stats for /kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod12be0f08_da27_11e9_99ac_069044000888.slice/docker-f7b79d53414f335b713db094565061726ff3c1237859d756392a3d7198fa0e2c.scope: cache:0KB rss:388KB rss_huge:0KB mapped_file:0KB swap:0KB inactive_anon:0KB active_anon:388KB inactive_file:0KB active_file:0KB unevictable:0KB  # noqa: E501
+# Sep 19 08:35:40 ip-10-10-10-56 kernel: Memory cgroup stats for /kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod12be0f08_da27_11e9_99ac_069044000888.slice/docker-4304197e5a46240357356250fcaf602bb4930f1b87157b73ae5e240f4a67a150.scope: cache:92KB rss:81440KB rss_huge:0KB mapped_file:60KB swap:0KB inactive_anon:28KB active_anon:81464KB inactive_file:4KB active_file:36KB unevictable:0KB  # noqa: E501
+# Sep 19 08:35:40 ip-10-10-10-56 kernel: Memory cgroup out of memory: Kill process 99190 (apache2) score 1534 or sacrifice child  # noqa: E501
 
 LOG = logging.getLogger(__name__)
 START_RE = re.compile(r".* ([^ ]+) kernel: Task in /kubepods\.slice/kubepods-burstable\.slice/"

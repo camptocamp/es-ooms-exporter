@@ -7,5 +7,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 RUN pip install --no-cache-dir --disable-pip-version-check -e . && \
     python3 -m compileall -q . && \
-    mypy --ignore-missing-imports /app
+    mypy --ignore-missing-imports . && \
+    flake8 .
 CMD ["/usr/local/bin/es-oom-exporter"]
