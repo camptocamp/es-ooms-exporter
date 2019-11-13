@@ -1,11 +1,13 @@
-from c2cwsgiutils import setup_process  # noqa  # pylint: disable=unused-import
-from es_oom_exporter.es import ElasticSearch, Oom
-from es_oom_exporter.kube import Kubernetes
 import logging
-import prometheus_client
-from prometheus_client.core import GaugeMetricFamily
 import time
 from typing import List
+
+from c2cwsgiutils import setup_process  # noqa  # pylint: disable=unused-import
+
+from es_oom_exporter.es import ElasticSearch, Oom
+from es_oom_exporter.kube import Kubernetes
+import prometheus_client
+from prometheus_client.core import GaugeMetricFamily
 
 LABELS = ['namespace', 'pod', 'container', 'process']
 
@@ -34,6 +36,12 @@ class OomsCollector:
         rss_killed_container = {}
         for oom in ooms:
             key = oom.get_key()
+            LOG.warn(
+                "Killed namespace: %s, release: %s, service: %s, pod: %s, container: %s, process: %s rss: %s, "
+                "rss_killed: %s",
+                key[0], oom.get_release(), oom.get_service(), key[1], key[2], key[3], oom.get_rss(),
+                oom.get_killed_rss()
+            )
             if key in count_containers:
                 count_containers[key] += 1
             else:

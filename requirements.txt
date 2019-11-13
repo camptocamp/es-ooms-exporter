@@ -3,3 +3,4 @@ coverage==4.5.4
 prometheus_client==0.7.1
 requests==2.22.0
 kubernetes==10.0.1
+setuptools>=40.3.0

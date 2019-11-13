@@ -5,9 +5,11 @@ the POD from the kubernetes API. The result is exported to prometheus.
 
 to run:
 ```bash
-docker run -ti --rm -p 8080:8080 \
-  -e ES_URL=https://elasticsearch.example.com/ \
-  -e ES_AUTH="Basic xxxx" \
+docker run --rm -pport=8080:8080 \
+  --env=NAMESPACE=gs-gmf-demo \
+  --env=ES_URL=https://elasticsearch.example.com/ \
+  --env=ES_AUTH="Basic xxxx" \
+  --volume=~/.kube:/root/.kube \
   camptocamp/es-ooms-exporter
 ```
 
@@ -21,3 +23,10 @@ Configuration variables:
 
 Will detect automatically if run from within kubernetes or from the outside
 (uses the current context)
+
+To test it use a stress container, run it with e.-g.:
+
+```bash
+oc run oom --restart=Never --labels="release=test,service=toto" --image=polinux/stress --requests="cpu=1m,memory=10Mi" --limits="memory=10Mi" -- stress --vm 1 --vm-bytes 20M
+oc delete pod oom
+```

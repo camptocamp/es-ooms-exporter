@@ -1,10 +1,11 @@
+import logging
+import os
+
 from kubernetes.client.api_client import ApiClient
 from kubernetes.client.apis.core_v1_api import CoreV1Api
 from kubernetes.client.models.v1_pod_list import V1PodList
-from kubernetes.config.incluster_config import load_incluster_config, SERVICE_TOKEN_FILENAME
+from kubernetes.config.incluster_config import SERVICE_TOKEN_FILENAME, load_incluster_config
 from kubernetes.config.kube_config import load_kube_config
-import logging
-import os
 
 LOG = logging.getLogger(__name__)
 NAMESPACE = os.environ.get('NAMESPACE')
@@ -43,6 +44,8 @@ class Kubernetes:
                             containers[container_status.container_id.replace("docker://", "")] = container_status.name
             results[md.uid] = {
                 'namespace': md.namespace,
+                'release': md.labels.get('release'),
+                'service': md.labels.get('service'),
                 'pod_name': md.name,
                 'containers': containers
             }
