@@ -39,6 +39,8 @@ class Oom:
         self._containers_rss = {}
         self._pod_name = None
         self._namespace = None
+        self._release = None
+        self._service = None
         self._container = None
 
     def add_start_info(self, matcher, pod_infos):
@@ -52,6 +54,8 @@ class Oom:
         if pod_info is not None:
             self._pod_name = pod_info['pod_name']
             self._namespace = pod_info['namespace']
+            self._release = pod_info['release']
+            self._service = pod_info['service']
             container_info = pod_info['containers'].get(self._container_uid)
             if container_info is not None:
                 self._container = container_info
@@ -74,6 +78,12 @@ class Oom:
         self._process = matcher.group(2)
         self._when = timestamp
         return self._container is not None
+
+    def get_release(self):
+        return self._release
+
+    def get_service(self):
+        return self._service
 
     def get_key(self):
         return self._namespace, self._pod_name, self._container, self._process
