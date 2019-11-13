@@ -50,6 +50,10 @@ class OomsCollector:
             rss_killed_container[key] = max(rss_killed_container.get(key, 0), oom.get_killed_rss())
 
         for key in count_containers.keys():
+            LOG.warn(
+                "Kiled container: %s count: %s, rss: %s, rss_killed: %s",
+                key, count_containers[key], rss_containers[key], rss_killed_container[key]
+            )
             g_oom.add_metric(labels=key, value=count_containers[key])
             g_rss.add_metric(labels=key, value=rss_containers[key])
             g_rss_killed.add_metric(labels=key, value=rss_killed_container[key])
