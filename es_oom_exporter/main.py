@@ -9,7 +9,7 @@ from es_oom_exporter.kube import Kubernetes
 import prometheus_client
 from prometheus_client.core import GaugeMetricFamily
 
-LABELS = ['namespace', 'pod', 'container', 'process']
+LABELS = ['namespace', 'pod', 'container', 'process', 'host']
 
 LOG = logging.getLogger('es_oom_exporter')
 
@@ -35,10 +35,11 @@ class OomsCollector:
         rss_killed_container = {}
         for oom in ooms:
             key = oom.get_key()
-            LOG.warn(
-                "Killed namespace: %s, release: %s, service: %s, pod: %s, container: %s, process: %s rss: %s, "
-                "rss_killed: %s",
-                key[0], oom.get_release(), oom.get_service(), key[1], key[2], key[3], oom.get_rss(),
+            LOG.warning(
+                "Killed host: %s namespace: %s, release: %s, service: %s, pod: %s, container: %s, "
+                "process: %s rss: %s, rss_killed: %s",
+                oom.get_host(), oom.get_namespace(), oom.get_release(), oom.get_service(),
+                oom.get_pod_name(), oom.get_container(), oom.get_process(), oom.get_rss(),
                 oom.get_killed_rss()
             )
             if key in count_containers:

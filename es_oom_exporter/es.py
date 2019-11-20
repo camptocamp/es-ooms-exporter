@@ -31,7 +31,8 @@ SIZES = {
 
 
 class Oom:
-    def __init__(self):
+    def __init__(self, host):
+        self._host = host
         self._pod_uid = None
         self._process = None
         self._when = None
@@ -85,8 +86,23 @@ class Oom:
     def get_service(self):
         return self._service
 
+    def get_namespace(self):
+        return self._namespace
+
+    def get_pod_name(self):
+        return self._pod_name
+
+    def get_container(self):
+        return self._container
+
+    def get_process(self):
+        return self._process
+
+    def get_host(self):
+        return self._host
+
     def get_key(self):
-        return self._namespace, self._pod_name, self._container, self._process
+        return self._namespace, self._pod_name, self._container, self._process, self._host
 
     def get_rss(self):
         return sum(self._containers_rss.values())
@@ -202,6 +218,7 @@ class ElasticSearch:
                 timestamp = int(hit['fields']['@timestamp'][0])
                 self.last_timestamp = timestamp
                 message = hit['_source']['message']
+                LOG.debug("message: %s", message)
                 start_match = START_RE.match(message)
                 pod_match = CONTAINER_RE.match(message)
                 oom_match = OOM_RE.match(message)
@@ -219,7 +236,7 @@ class ElasticSearch:
 def _get_cur(cur_by_host: Dict[str, Oom], host) -> Oom:
     cur = cur_by_host.get(host)
     if cur is None:
-        cur = Oom()
+        cur = Oom(host)
         cur_by_host[host] = cur
     return cur
 
