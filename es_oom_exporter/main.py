@@ -21,7 +21,6 @@ class OomsCollector:
 
     def collect(self):
         ooms: List[Oom] = self.es.get_ooms(self.kube)
-        LOG.info(ooms)
         g_oom = GaugeMetricFamily('pod_process_oom',
                                   "OOM events in a POD's container",
                                   labels=LABELS)
