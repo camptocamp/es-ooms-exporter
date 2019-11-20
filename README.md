@@ -5,7 +5,7 @@ the POD from the kubernetes API. The result is exported to prometheus.
 
 to run:
 ```bash
-docker run --rm -pport=8080:8080 \
+docker run --rm --publish=8080:8080 \
   --env=NAMESPACE=gs-gmf-demo \
   --env=ES_URL=https://elasticsearch.example.com/ \
   --env=ES_AUTH="Basic xxxx" \
@@ -29,4 +29,10 @@ To test it use a stress container, run it with e.-g.:
 ```bash
 oc run oom --restart=Never --labels="release=test,service=toto" --image=polinux/stress --requests="cpu=1m,memory=10Mi" --limits="memory=10Mi" -- stress --vm 1 --vm-bytes 20M
 oc delete pod oom
+```
+
+Then, you need to get the metrics:
+
+```bash
+curl http://localhost:8080/metrics
 ```
