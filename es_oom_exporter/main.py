@@ -37,7 +37,7 @@ class OomsCollector:
             key = oom.get_key()
             LOG.warning(
                 "Killed host: %s, namespace: %s, release: %s, service: %s, pod: %s, container: %s, "
-                "process: %s rss: %s, rss_killed: %s",
+                "process: %s, rss: %s, rss_killed: %s",
                 oom.get_host(), oom.get_namespace(), oom.get_release(), oom.get_service(),
                 oom.get_pod_name(), oom.get_container(), oom.get_process(), oom.get_rss(),
                 oom.get_killed_rss()
