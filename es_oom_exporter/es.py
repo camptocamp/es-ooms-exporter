@@ -165,10 +165,8 @@ class ElasticSearch:
             },
         }
         if self.last_timestamp is not None:
-            query["query"]["bool"]["filter"].append(
-                {  # type: ignore
-                    "range": {"@timestamp": {"gt": self.last_timestamp, "format": "epoch_millis"}}
-                }
+            query["query"]["bool"]["filter"].append(  # type: ignore
+                {"range": {"@timestamp": {"gt": self.last_timestamp, "format": "epoch_millis"}}}
             )
         with requests.post(self.search_url, json=query, headers=self.search_headers) as r:
             if r.status_code != 200:
