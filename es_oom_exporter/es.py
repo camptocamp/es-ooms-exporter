@@ -65,12 +65,16 @@ class Oom:
             else:
                 LOG.info("Didn't find container info for %s", matcher.group(0))
         else:
-            LOG.info("Didn't find POD info for %s", matcher.group(0))
+            LOG.info(
+                "Didn't find POD info for %s in [%s]: %s", pod_uid, ", ".join(pod_infos), matcher.group(0)
+            )
 
     def add_pod_info(self, matcher):
         pod_uid = matcher.group(2).replace("_", "-")
         if pod_uid != self._pod_uid:
-            LOG.warning("Inconsistent logs (different PODs): %s", matcher.group(0))
+            LOG.warning(
+                "Inconsistent logs (different PODs %s!=%s): %s", pod_uid, self._pod_uid, matcher.group(0)
+            )
             return
 
         rss = _get_size(matcher.group(4))
