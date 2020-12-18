@@ -2,16 +2,16 @@ import logging
 import time
 from typing import List
 
+import prometheus_client
 from c2cwsgiutils import setup_process  # noqa  # pylint: disable=unused-import
+from prometheus_client.core import GaugeMetricFamily
 
 from es_oom_exporter.es import ElasticSearch, Oom
 from es_oom_exporter.kube import Kubernetes
-import prometheus_client
-from prometheus_client.core import GaugeMetricFamily
 
-LABELS = ['namespace', 'pod', 'container', 'process', 'host']
+LABELS = ["namespace", "pod", "container", "process", "host"]
 
-LOG = logging.getLogger('es_oom_exporter')
+LOG = logging.getLogger("es_oom_exporter")
 
 
 class OomsCollector:
@@ -21,15 +21,15 @@ class OomsCollector:
 
     def collect(self):
         ooms: List[Oom] = self.es.get_ooms(self.kube)
-        g_oom = GaugeMetricFamily('pod_process_oom',
-                                  "OOM events in a POD's container",
-                                  labels=LABELS)
-        g_rss_killed = GaugeMetricFamily('pod_process_oom_rss_container',
-                                         "RSS in bytes before an OOM events in a POD's container",
-                                         labels=LABELS)
-        g_rss = GaugeMetricFamily('pod_process_oom_rss',
-                                  "RSS in bytes before an OOM events in a POD's container",
-                                  labels=LABELS)
+        g_oom = GaugeMetricFamily("pod_process_oom", "OOM events in a POD's container", labels=LABELS)
+        g_rss_killed = GaugeMetricFamily(
+            "pod_process_oom_rss_container",
+            "RSS in bytes before an OOM events in a POD's container",
+            labels=LABELS,
+        )
+        g_rss = GaugeMetricFamily(
+            "pod_process_oom_rss", "RSS in bytes before an OOM events in a POD's container", labels=LABELS
+        )
         count_containers = {}
         rss_containers = {}
         rss_killed_container = {}
@@ -38,9 +38,15 @@ class OomsCollector:
             LOG.warning(
                 "Killed host: %s, namespace: %s, release: %s, service: %s, pod: %s, container: %s, "
                 "process: %s, rss: %s, rss_killed: %s",
-                oom.get_host(), oom.get_namespace(), oom.get_release(), oom.get_service(),
-                oom.get_pod_name(), oom.get_container(), oom.get_process(), oom.get_rss(),
-                oom.get_killed_rss()
+                oom.get_host(),
+                oom.get_namespace(),
+                oom.get_release(),
+                oom.get_service(),
+                oom.get_pod_name(),
+                oom.get_container(),
+                oom.get_process(),
+                oom.get_rss(),
+                oom.get_killed_rss(),
             )
             if key in count_containers:
                 count_containers[key] += 1
@@ -52,7 +58,10 @@ class OomsCollector:
         for key in count_containers.keys():
             LOG.warn(
                 "Kiled container: %s count: %s, rss: %s, rss_killed: %s",
-                key, count_containers[key], rss_containers[key], rss_killed_container[key]
+                key,
+                count_containers[key],
+                rss_containers[key],
+                rss_killed_container[key],
             )
             g_oom.add_metric(labels=key, value=count_containers[key])
             g_rss.add_metric(labels=key, value=rss_containers[key])
@@ -64,7 +73,7 @@ class OomsCollector:
 
 
 def main():
-    logging.getLogger('kubernetes').setLevel(logging.INFO)
+    logging.getLogger("kubernetes").setLevel(logging.INFO)
     es = ElasticSearch()
     kube = Kubernetes()
     prometheus_client.REGISTRY.register(OomsCollector(kube, es))

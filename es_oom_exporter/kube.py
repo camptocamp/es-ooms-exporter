@@ -8,7 +8,7 @@ from kubernetes.config.incluster_config import SERVICE_TOKEN_FILENAME, load_incl
 from kubernetes.config.kube_config import load_kube_config
 
 LOG = logging.getLogger(__name__)
-NAMESPACE = os.environ.get('NAMESPACE')
+NAMESPACE = os.environ.get("NAMESPACE")
 
 
 class Kubernetes:
@@ -41,19 +41,25 @@ class Kubernetes:
                 if statuses is not None:
                     for container_status in statuses:
                         if container_status.container_id is not None:
-                            containers[container_status.container_id.replace("docker://", "")] = container_status.name
+                            containers[
+                                container_status.container_id.replace("docker://", "")
+                            ] = container_status.name
             results[md.uid] = {
-                'namespace': md.namespace,
-                'release': md.labels.get('release'),
-                'service': md.labels.get('service'),
-                'pod_name': md.name,
-                'containers': containers
+                "namespace": md.namespace,
+                "release": md.labels.get("release"),
+                "service": md.labels.get("service"),
+                "pod_name": md.name,
+                "containers": containers,
             }
         return results
 
     def get_namespaces(self):
         data, status, _headers = self.api.call_api(
-            '/apis/project.openshift.io/v1/projects', 'GET', auth_settings=['BearerToken'], response_type=object)
+            "/apis/project.openshift.io/v1/projects",
+            "GET",
+            auth_settings=["BearerToken"],
+            response_type=object,
+        )
         assert status == 200
-        assert data['kind'] == 'ProjectList'
-        return [ns['metadata']['name'] for ns in data['items']]
+        assert data["kind"] == "ProjectList"
+        return [ns["metadata"]["name"] for ns in data["items"]]
