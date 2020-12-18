@@ -1,28 +1,27 @@
 import os
-from setuptools import setup, find_packages
 
+from setuptools import find_packages, setup
 
-VERSION = '1.0.0'
+VERSION = "1.0.0"
 HERE = os.path.abspath(os.path.dirname(__file__))
 INSTALL_REQUIRES = [
-    pkg.split('==')[0]
-    for pkg in open(os.path.join(HERE, 'requirements.txt')).read().splitlines()
+    pkg.split("==")[0] for pkg in open(os.path.join(HERE, "requirements.txt")).read().splitlines()
 ]
 
 
 def long_description():
     try:
-        return open('README.md').read()
+        return open("README.md").read()
     except FileNotFoundError:
         return ""
 
 
 setup(
-    name='es-oom-exporter',
+    name="es-oom-exporter",
     version=VERSION,
     description="OOM prometheus exported",
     long_description=long_description(),
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Plugins",
@@ -33,19 +32,17 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Topic :: Scientific/Engineering :: GIS",
     ],
-    keywords='kubernetes oom prometheus',
-    author='Camptocamp',
-    author_email='info@camptocamp.com',
-    url='https://github.com/camptocamp/es-oom-exporter',
-    license='FreeBSD',
+    keywords="kubernetes oom prometheus",
+    author="Camptocamp",
+    author_email="info@camptocamp.com",
+    url="https://github.com/camptocamp/es-oom-exporter",
+    license="FreeBSD",
     packages=find_packages(exclude=[]),
     include_package_data=True,
     zip_safe=False,
     install_requires=INSTALL_REQUIRES,
     entry_points={
-        'console_scripts': [
-            'es-oom-exporter = es_oom_exporter.main:main'
-        ],
+        "console_scripts": ["es-oom-exporter = es_oom_exporter.main:main"],
     },
-    scripts=[]
+    scripts=[],
 )
