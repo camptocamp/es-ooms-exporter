@@ -1,6 +1,6 @@
 import os
 
-from setuptools import find_packages, setup
+from setuptools import find_packages, setup  # type: ignore
 
 VERSION = "1.0.0"
 HERE = os.path.abspath(os.path.dirname(__file__))

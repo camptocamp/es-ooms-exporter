@@ -208,5 +208,5 @@ def _get_cur(cur_by_host: Dict[str, Oom], host) -> Oom:
 
 def _get_size(txt):
     matcher = SIZE_RE.match(txt)
-    assert matcher, "Cannot parse " + txt
+    assert matcher, "Cannot parse " + txt  # nosec
     return int(matcher.group(1)) * SIZES[matcher.group(2)]

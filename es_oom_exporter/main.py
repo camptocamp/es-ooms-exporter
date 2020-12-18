@@ -2,9 +2,9 @@ import logging
 import time
 from typing import List
 
-import prometheus_client
+import prometheus_client  # type: ignore
 from c2cwsgiutils import setup_process  # noqa  # pylint: disable=unused-import
-from prometheus_client.core import GaugeMetricFamily
+from prometheus_client.core import GaugeMetricFamily  # type: ignore
 
 from es_oom_exporter.es import ElasticSearch, Oom
 from es_oom_exporter.kube import Kubernetes
@@ -55,15 +55,15 @@ class OomsCollector:
             rss_containers[key] = max(rss_containers.get(key, 0), oom.get_rss())
             rss_killed_container[key] = max(rss_killed_container.get(key, 0), oom.get_killed_rss())
 
-        for key in count_containers.keys():
-            LOG.warn(
+        for key, count_container in count_containers.items():
+            LOG.warning(
                 "Kiled container: %s count: %s, rss: %s, rss_killed: %s",
                 key,
-                count_containers[key],
+                count_container,
                 rss_containers[key],
                 rss_killed_container[key],
             )
-            g_oom.add_metric(labels=key, value=count_containers[key])
+            g_oom.add_metric(labels=key, value=count_container)
             g_rss.add_metric(labels=key, value=rss_containers[key])
             g_rss_killed.add_metric(labels=key, value=rss_killed_container[key])
 
