@@ -4,3 +4,12 @@ checks:
     audit.yaml: False
     dependabot-auto-merge.yaml: False
     backport.yaml: False
+
+version:
+  branch_to_version_re:
+    - from: master
+      to: latest
+
+publish:
+  pypi:
+    packages: []
