@@ -1,11 +1,11 @@
 import logging
 import os
 
-from kubernetes.client.api_client import ApiClient
-from kubernetes.client.apis.core_v1_api import CoreV1Api
-from kubernetes.client.models.v1_pod_list import V1PodList
-from kubernetes.config.incluster_config import SERVICE_TOKEN_FILENAME, load_incluster_config
-from kubernetes.config.kube_config import load_kube_config
+from kubernetes.client.api_client import ApiClient  # type: ignore
+from kubernetes.client.apis.core_v1_api import CoreV1Api  # type: ignore
+from kubernetes.client.models.v1_pod_list import V1PodList  # type: ignore
+from kubernetes.config.incluster_config import SERVICE_TOKEN_FILENAME, load_incluster_config  # type: ignore
+from kubernetes.config.kube_config import load_kube_config  # type: ignore
 
 LOG = logging.getLogger(__name__)
 NAMESPACE = os.environ.get("NAMESPACE")
@@ -60,6 +60,6 @@ class Kubernetes:
             auth_settings=["BearerToken"],
             response_type=object,
         )
-        assert status == 200
-        assert data["kind"] == "ProjectList"
+        assert status == 200  # nosec
+        assert data["kind"] == "ProjectList"  # nosec
         return [ns["metadata"]["name"] for ns in data["items"]]
