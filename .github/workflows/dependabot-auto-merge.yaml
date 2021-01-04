@@ -8,6 +8,7 @@ on:
   workflow_run:
     workflows:
       - Continuous integration
+      - CodeQL scanning
     types:
       - completed
 
@@ -18,6 +19,7 @@ jobs:
     timeout-minutes: 5
 
     steps:
+      # GitHub dependabot
       - name: Auto merge
         uses: sbrunner/merge-me-action@workflow_run_dist
         with:
