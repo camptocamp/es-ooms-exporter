@@ -1,8 +1,8 @@
 import logging
 import os
 
+from kubernetes.client.api.core_api import CoreApi  # type: ignore
 from kubernetes.client.api_client import ApiClient  # type: ignore
-from kubernetes.client.apis.core_v1_api import CoreV1Api  # type: ignore
 from kubernetes.client.models.v1_pod_list import V1PodList  # type: ignore
 from kubernetes.config.incluster_config import SERVICE_TOKEN_FILENAME, load_incluster_config  # type: ignore
 from kubernetes.config.kube_config import load_kube_config  # type: ignore
@@ -30,7 +30,7 @@ class Kubernetes:
             return self._get_pod_infos_ns(NAMESPACE)
 
     def _get_pod_infos_ns(self, namespace):
-        v1 = CoreV1Api(self.api)
+        v1 = CoreApi(self.api)
         results = {}
         pods: V1PodList = v1.list_namespaced_pod(namespace)
         for pod in pods.items:

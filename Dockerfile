@@ -12,15 +12,15 @@ COPY requirements.txt .
 RUN python3 -m pip install --no-cache-dir --requirement=requirements.txt
 
 COPY Pipfile* ./
-RUN pipenv install --system --clear
+RUN pipenv install --system --clear --verbose
 
 COPY . .
-RUN python3 -m pip install --no-cache-dir --disable-pip-version-check --editable=. && \
+RUN python3 -m pip install --no-cache-dir --disable-pip-version-check --no-deps --editable=. && \
     python3 -m compileall -q .
 
 FROM base AS checks
 
-RUN pipenv install --system --clear --dev
+RUN pipenv install --system --clear --dev --verbose
 RUN prospector
 
 FROM base AS runner
