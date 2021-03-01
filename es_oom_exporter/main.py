@@ -1,13 +1,16 @@
 import logging
+import os
 import time
 from typing import List
 
 import prometheus_client  # type: ignore
-from c2cwsgiutils import setup_process  # noqa  # pylint: disable=unused-import
 from prometheus_client.core import GaugeMetricFamily  # type: ignore
 
-from es_oom_exporter.es import ElasticSearch, Oom
+from es_oom_exporter.dmesg import Dmesg
+from es_oom_exporter.es import ElasticSearch
 from es_oom_exporter.kube import Kubernetes
+from es_oom_exporter.message_reader import MessageReader
+from es_oom_exporter.oom import Oom
 
 LABELS = ["namespace", "pod", "container", "process", "host"]
 
@@ -15,12 +18,12 @@ LOG = logging.getLogger("es_oom_exporter")
 
 
 class OomsCollector:
-    def __init__(self, kube, es):
+    def __init__(self, kube: Kubernetes, message_reader: MessageReader):
         self.kube = kube
-        self.es = es
+        self.message_reader = message_reader
 
     def collect(self):
-        ooms: List[Oom] = self.es.get_ooms(self.kube)
+        ooms: List[Oom] = self.message_reader.get_ooms(self.kube)
         g_oom = GaugeMetricFamily("pod_process_oom", "OOM events in a POD's container", labels=LABELS)
         g_rss_killed = GaugeMetricFamily(
             "pod_process_oom_rss_container",
@@ -57,7 +60,7 @@ class OomsCollector:
 
         for key, count_container in count_containers.items():
             LOG.warning(
-                "Kiled container: %s count: %s, rss: %s, rss_killed: %s",
+                "Killed container: %s count: %s, rss: %s, rss_killed: %s",
                 key,
                 count_container,
                 rss_containers[key],
@@ -74,9 +77,12 @@ class OomsCollector:
 
 def main():
     logging.getLogger("kubernetes").setLevel(logging.INFO)
-    es = ElasticSearch()
+    if "ES_URL" in os.environ:
+        message_reader = ElasticSearch()
+    else:
+        message_reader = Dmesg()
     kube = Kubernetes()
-    prometheus_client.REGISTRY.register(OomsCollector(kube, es))
+    prometheus_client.REGISTRY.register(OomsCollector(kube, message_reader))
     prometheus_client.start_http_server(port=8080)
     while True:
         time.sleep(10)

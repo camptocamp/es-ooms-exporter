@@ -15,9 +15,12 @@ docker run --rm --publish=8080:8080 \
 
 Configuration variables:
 
-* ES_URL: Base URL of elasticsearch
-* ES_AUTH: Optional auth string for elasticsearch
-* ES_INDEXES: Optional index to use
+* For fetching logs from elasticsearch (suitable for OpenShift):
+    * ES_URL: Base URL of elasticsearch
+    * ES_AUTH: Optional auth string for elasticsearch
+    * ES_INDEXES: Optional index to use
+* For fetching logs from dmesg (suitable for EKS):
+    * NODE_NAME: The name of the node running the POD
 * NAMESPACE: Kubernetes namespace to use (by default, uses all
              the OpenShift projects)
 
@@ -35,4 +38,83 @@ Then, you need to get the metrics:
 
 ```bash
 curl http://localhost:8080/metrics
+```
+
+## EKS
+
+To run it on EKS without needing to setup logs on elasticsearch, deploy a DaemonSet like that:
+```yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "oom-exporter.fullname" . }}
+  labels:
+      {{- include "oom-exporter.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "oom-exporter.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "oom-exporter.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccount: {{ include "oom-exporter.fullname" $ }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          # don't put probes, they would consume the OOM events
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+    name: {{ include "oom-exporter.fullname" $ }}
+    labels:
+        {{- include "oom-exporter.labels" $ | nindent 4 }}
+rules:
+    - apiGroups: [""]
+      resources:
+          - namespaces
+          - pods
+      verbs: ["list", "get"]
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: {{ include "oom-exporter.fullname" $ }}
+    namespace: {{ $.Release.Namespace }}
+    labels:
+        {{- include "oom-exporter.labels" $ | nindent 4 }}
+
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+    name: {{ include "oom-exporter.fullname" $ }}
+    namespace: {{ $.Release.Namespace }}
+    labels:
+        {{- include "oom-exporter.labels" $ | nindent 4 }}
+subjects:
+    - kind: ServiceAccount
+      name: {{ include "oom-exporter.fullname" $ }}
+      namespace: {{ $.Release.Namespace }}
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: {{ include "oom-exporter.fullname" $ }}
 ```
