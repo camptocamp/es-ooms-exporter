@@ -14,6 +14,7 @@ from es_oom_exporter.oom import Oom
 # [21013.577527] Memory cgroup out of memory: Kill process 8308 (java) score 1894 or sacrifice child  # noqa: E501
 
 LOG = logging.getLogger(__name__)
+TIMESTAMP_RE = re.compile(r"\[\s*(\d+\.\d+)\].*")
 START_RE = re.compile(
     r"\[\s*(\d+\.\d+)\] Task in /kubepods/(?:burstable/)?pod([0-9a-f_-]*)/([0-9a-f]*) killed as a result of "
     r"limit of /kubepods/(?:burstable/)?pod[0-9a-f_-]*"
@@ -32,7 +33,8 @@ class Dmesg(MessageReader):
     def __init__(self):
         self._node_name = os.environ["NODE_NAME"]
         self._cur: Optional[Oom] = None
-        self._cur_pos = 0
+
+        self._prev_timestamp = None
 
     def _get_cur(self):
         if self._cur is None:
@@ -48,18 +50,25 @@ class Dmesg(MessageReader):
         if dmesg.stdout is None:
             return []
         prev = b""
-        if self._cur_pos > 0:
-            # Cannot use --follow (not working in a container) and cannot specify a position in the logs where
-            # to start. So, we need to read everything from the start and ignore the logs we've already seen.
-            dmesg.stdout.read(self._cur_pos)
+        timestamp = None
         for line in dmesg.stdout:
-            self._cur_pos += len(line)
             line = prev + line
             if not line.endswith(b"\n"):
                 prev = line
             else:
                 prev = b""
                 message = line.decode().rstrip("\n")
+
+                # Cannot use --follow (not working in a container) and cannot specify a position in the logs
+                # where to start. So, we need to read everything from the start and ignore the logs we've
+                # already seen.
+                timestamp_match = TIMESTAMP_RE.match(message)
+                if not timestamp_match:
+                    continue
+                timestamp = float(timestamp_match.group(1))
+                if self._prev_timestamp is not None and self._prev_timestamp >= timestamp:
+                    continue
+
                 LOG.debug("message: <%s>", message)
                 start_match = START_RE.match(message)
                 pod_match = CONTAINER_RE.match(message)
@@ -74,5 +83,7 @@ class Dmesg(MessageReader):
                     if self._cur is not None and self._cur.add_oom_info(oom_match):
                         ooms.append(self._cur)
                     self._cur = None
+        if timestamp is not None:
+            self._prev_timestamp = timestamp
         dmesg.wait()
         return ooms
