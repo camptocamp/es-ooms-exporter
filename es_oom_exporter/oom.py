@@ -39,7 +39,7 @@ class Oom:
             else:
                 LOG.info("Didn't find container info for %s", matcher.group(0))
         else:
-            LOG.info(
+            LOG.debug(
                 "Didn't find POD info for %s in [%s]: %s", pod_uid, ", ".join(pod_infos), matcher.group(0)
             )
 
