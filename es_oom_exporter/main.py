@@ -1,4 +1,4 @@
-import logging
+import logging.config
 import os
 import time
 from typing import List
@@ -76,7 +76,7 @@ class OomsCollector:
 
 
 def main():
-    logging.init("/app/production.ini")
+    logging.config.fileConfig("/app/production.ini", defaults=dict(os.environ))
     logging.getLogger("kubernetes").setLevel(logging.INFO)
     if "ES_URL" in os.environ:
         message_reader = ElasticSearch()
