@@ -76,6 +76,7 @@ class OomsCollector:
 
 
 def main():
+    logging.init("/app/production.ini")
     logging.getLogger("kubernetes").setLevel(logging.INFO)
     if "ES_URL" in os.environ:
         message_reader = ElasticSearch()

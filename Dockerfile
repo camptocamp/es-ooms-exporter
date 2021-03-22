@@ -26,3 +26,7 @@ RUN prospector
 FROM base AS runner
 
 CMD ["/usr/local/bin/es-oom-exporter"]
+ENV OTHER_LOG_LEVEL=WARN \
+    LOG_LEVEL=INFO \
+    C2CWSGIUTILS_LOG_LEVEL=WARN \
+    LOG_TYPE=json
