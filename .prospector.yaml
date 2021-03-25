@@ -13,7 +13,8 @@ pylint:
 
 pep8:
   disable:
-    - E501
+    - E501 # line too long error
+    - E722 # do not use bare 'except
 
 mypy:
   run: True
