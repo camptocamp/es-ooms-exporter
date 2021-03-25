@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import re
@@ -77,12 +78,11 @@ class ElasticSearch(MessageReader):
             query["query"]["bool"]["filter"].append(  # type: ignore
                 {"range": {"@timestamp": {"gt": self.last_timestamp, "format": "epoch_millis"}}}
             )
+        LOG.info("Doing query: %s", json.dumps(query))
         with requests.post(self.search_url, json=query, headers=self.search_headers) as r:
-            if r.status_code != 200:
-                LOG.warning("Error from ES: %s", r.text)
             r.raise_for_status()
-            json = r.json()
-            hits = json["hits"]["hits"]
+            json_responce = r.json()
+            hits = json_responce["hits"]["hits"]
             if len(hits) == 0:
                 return []
             pod_infos = kube.get_pod_infos()
