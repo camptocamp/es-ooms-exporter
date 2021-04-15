@@ -27,7 +27,7 @@ Configuration variables:
 Will detect automatically if run from within kubernetes or from the outside
 (uses the current context)
 
-To test it use a stress container, run it with e.-g.:
+To test it use a stress container, run it with e.g.:
 
 ```bash
 oc run oom --restart=Never --labels="release=test,service=toto" --image=polinux/stress --requests="cpu=1m,memory=10Mi" --limits="memory=10Mi" -- stress --vm 1 --vm-bytes 20M
