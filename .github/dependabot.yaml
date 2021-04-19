@@ -6,7 +6,6 @@ updates:
     directory: '/'
     schedule:
       interval: daily
-      time: '02:00'
     ignore:
       - dependency-name: none
 
@@ -14,6 +13,5 @@ updates:
     directory: '/'
     schedule:
       interval: daily
-      time: '02:00'
     ignore:
       - dependency-name: none
