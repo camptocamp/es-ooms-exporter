@@ -1,10 +1,10 @@
 import logging.config
 import os
 import time
-from typing import List
+from typing import Dict, Iterator, List, Union
 
-import prometheus_client  # type: ignore
-from prometheus_client.core import GaugeMetricFamily  # type: ignore
+import prometheus_client
+from prometheus_client.core import GaugeMetricFamily
 
 from es_oom_exporter.dmesg import Dmesg
 from es_oom_exporter.es import ElasticSearch
@@ -18,11 +18,11 @@ LOG = logging.getLogger("es_oom_exporter")
 
 
 class OomsCollector:
-    def __init__(self, kube: Kubernetes, message_reader: MessageReader):
+    def __init__(self, kube: Kubernetes, message_reader: MessageReader) -> None:
         self.kube = kube
         self.message_reader = message_reader
 
-    def collect(self):
+    def collect(self) -> Iterator[str]:
         try:
             ooms: List[Oom] = self.message_reader.get_ooms(self.kube)
             g_oom = GaugeMetricFamily("pod_process_oom", "OOM events in a POD's container", labels=LABELS)
@@ -34,9 +34,9 @@ class OomsCollector:
             g_rss = GaugeMetricFamily(
                 "pod_process_oom_rss", "RSS in bytes before an OOM events in a POD's container", labels=LABELS
             )
-            count_containers = {}
-            rss_containers = {}
-            rss_killed_container = {}
+            count_containers: Dict[str, int] = {}
+            rss_containers: Dict[str, Union[float, str]] = {}
+            rss_killed_container: Dict[str, Union[float, str]] = {}
             for oom in ooms:
                 key = oom.get_key()
                 LOG.warning(
@@ -78,11 +78,11 @@ class OomsCollector:
             LOG.exception("Error while collecting the OOMs")
 
 
-def main():
+def main() -> None:
     logging.config.fileConfig("/app/production.ini", defaults=dict(os.environ))
     logging.getLogger("kubernetes").setLevel(logging.INFO)
     if "ES_URL" in os.environ:
-        message_reader = ElasticSearch()
+        message_reader: MessageReader = ElasticSearch()
     else:
         message_reader = Dmesg()
     kube = Kubernetes()
