@@ -14,16 +14,19 @@ RUN python3 -m pip install --no-cache-dir --requirement=requirements.txt
 COPY Pipfile* ./
 RUN pipenv sync --system --clear
 
-COPY . .
-RUN python3 -m pip install --no-cache-dir --disable-pip-version-check --no-deps --editable=. && \
-    python3 -m compileall -q .
-
 FROM base AS checks
 
 RUN pipenv sync --system --clear --dev
-RUN prospector
+
+COPY . .
+RUN python3 -m pip install --no-cache-dir --disable-pip-version-check --no-deps --editable=.
+RUN prospector --output=pylint
 
 FROM base AS runner
+
+COPY . .
+RUN python3 -m pip install --no-cache-dir --disable-pip-version-check --no-deps --editable=. && \
+    python3 -m compileall -q .
 
 CMD ["/usr/local/bin/es-oom-exporter"]
 ENV OTHER_LOG_LEVEL=WARN \

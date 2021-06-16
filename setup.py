@@ -1,6 +1,6 @@
 import os
 
-from setuptools import find_packages, setup  # type: ignore
+from setuptools import find_packages, setup
 
 VERSION = "1.0.0"
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -9,7 +9,7 @@ INSTALL_REQUIRES = [
 ]
 
 
-def long_description():
+def long_description() -> str:
     try:
         return open("README.md").read()
     except FileNotFoundError:

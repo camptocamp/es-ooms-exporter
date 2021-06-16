@@ -4,6 +4,7 @@ import re
 import subprocess  # nosec
 from typing import List, Optional
 
+from es_oom_exporter.kube import Kubernetes
 from es_oom_exporter.message_reader import MessageReader
 from es_oom_exporter.oom import Oom
 
@@ -30,18 +31,18 @@ OOM_RE = re.compile(
 
 
 class Dmesg(MessageReader):
-    def __init__(self):
+    def __init__(self) -> None:
         self._node_name = os.environ["NODE_NAME"]
         self._cur: Optional[Oom] = None
 
-        self._prev_timestamp = None
+        self._prev_timestamp: Optional[float] = None
 
-    def _get_cur(self):
+    def _get_cur(self) -> Oom:
         if self._cur is None:
             self._cur = Oom(self._node_name)
         return self._cur
 
-    def get_ooms(self, kube) -> List[Oom]:
+    def get_ooms(self, kube: Kubernetes) -> List[Oom]:
         ooms: List[Oom] = []
         pod_infos = None
         dmesg = subprocess.Popen(  # nosec

@@ -7,6 +7,7 @@ from typing import Dict, List
 
 import requests
 
+from es_oom_exporter.kube import Kubernetes
 from es_oom_exporter.message_reader import MessageReader
 from es_oom_exporter.oom import Oom
 from es_oom_exporter.utils import ensure_slash
@@ -34,7 +35,7 @@ OOM_RE = re.compile(
 
 
 class ElasticSearch(MessageReader):
-    def __init__(self):
+    def __init__(self) -> None:
         es_url = ensure_slash(os.environ["ES_URL"])
         es_indexes = os.environ.get("ES_INDEXES", "_all")
         es_auth = os.environ.get("ES_AUTH")
@@ -48,7 +49,7 @@ class ElasticSearch(MessageReader):
         self.search_url = f"{es_url}{es_indexes}/_search"
         self.last_timestamp = int(time.time() * 1000)
 
-    def get_ooms(self, kube) -> List[Oom]:
+    def get_ooms(self, kube: Kubernetes) -> List[Oom]:
         query = {
             "version": True,
             "size": 500,
@@ -107,7 +108,7 @@ class ElasticSearch(MessageReader):
             return ooms
 
 
-def _get_cur(cur_by_host: Dict[str, Oom], host) -> Oom:
+def _get_cur(cur_by_host: Dict[str, Oom], host: str) -> Oom:
     cur = cur_by_host.get(host)
     if cur is None:
         cur = Oom(host)

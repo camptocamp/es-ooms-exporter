@@ -1,18 +1,19 @@
 import logging
 import os
+from typing import Any, Dict, List
 
-from kubernetes.client import CoreV1Api, VersionApi  # type: ignore
-from kubernetes.client.api_client import ApiClient  # type: ignore
-from kubernetes.client.models.v1_pod_list import V1PodList  # type: ignore
-from kubernetes.config.incluster_config import SERVICE_TOKEN_FILENAME, load_incluster_config  # type: ignore
-from kubernetes.config.kube_config import load_kube_config  # type: ignore
+from kubernetes.client import CoreV1Api, VersionApi
+from kubernetes.client.api_client import ApiClient
+from kubernetes.client.models.v1_pod_list import V1PodList
+from kubernetes.config.incluster_config import SERVICE_TOKEN_FILENAME, load_incluster_config
+from kubernetes.config.kube_config import load_kube_config
 
 LOG = logging.getLogger(__name__)
 NAMESPACE = os.environ.get("NAMESPACE")
 
 
 class Kubernetes:
-    def __init__(self):
+    def __init__(self) -> None:
         if os.path.exists(SERVICE_TOKEN_FILENAME):
             load_incluster_config()
         else:
@@ -21,7 +22,7 @@ class Kubernetes:
         version_api = VersionApi(self.api)
         self._is_openshift = "eks" not in version_api.get_code().git_version
 
-    def get_pod_infos(self):
+    def get_pod_infos(self) -> Dict[Any, Dict[str, Any]]:
         if NAMESPACE is None:
             results = {}
             namespaces = self.get_namespaces()
@@ -31,7 +32,7 @@ class Kubernetes:
         else:
             return self._get_pod_infos_ns(NAMESPACE)
 
-    def _get_pod_infos_ns(self, namespace):
+    def _get_pod_infos_ns(self, namespace: str) -> Dict[Any, Dict[str, Any]]:
         v1 = CoreV1Api(self.api)
         results = {}
         pods: V1PodList = v1.list_namespaced_pod(namespace)
@@ -59,7 +60,7 @@ class Kubernetes:
             }
         return results
 
-    def get_namespaces(self):
+    def get_namespaces(self) -> List[Any]:
         if self._is_openshift:
             data, status, _headers = self.api.call_api(
                 "/apis/project.openshift.io/v1/projects",
