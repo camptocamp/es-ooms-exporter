@@ -4,6 +4,7 @@ Listen on elasticsearch for kernel OOM messages and tries to resolve
 the POD from the kubernetes API. The result is exported to prometheus.
 
 to run:
+
 ```bash
 docker run --rm --publish=8080:8080 \
   --env=NAMESPACE=gs-gmf-demo \
@@ -15,14 +16,14 @@ docker run --rm --publish=8080:8080 \
 
 Configuration variables:
 
-* For fetching logs from elasticsearch (suitable for OpenShift):
-    * ES_URL: Base URL of elasticsearch
-    * ES_AUTH: Optional auth string for elasticsearch
-    * ES_INDEXES: Optional index to use
-* For fetching logs from dmesg (suitable for EKS):
-    * NODE_NAME: The name of the node running the POD
-* NAMESPACE: Kubernetes namespace to use (by default, uses all
-             the OpenShift projects)
+- For fetching logs from elasticsearch (suitable for OpenShift):
+  - ES_URL: Base URL of elasticsearch
+  - ES_AUTH: Optional auth string for elasticsearch
+  - ES_INDEXES: Optional index to use
+- For fetching logs from dmesg (suitable for EKS):
+  - NODE_NAME: The name of the node running the POD
+- NAMESPACE: Kubernetes namespace to use (by default, uses all
+  the OpenShift projects)
 
 Will detect automatically if run from within kubernetes or from the outside
 (uses the current context)
@@ -43,7 +44,8 @@ curl http://localhost:8080/metrics
 ## EKS
 
 To run it on EKS without needing to setup logs on elasticsearch, deploy a DaemonSet like that:
-```yaml
+
+```helm
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
