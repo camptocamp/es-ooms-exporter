@@ -45,46 +45,46 @@ class Dmesg(MessageReader):
     def get_ooms(self, kube: Kubernetes) -> List[Oom]:
         ooms: List[Oom] = []
         pod_infos = None
-        dmesg = subprocess.Popen(  # nosec
+        with subprocess.Popen(  # nosec
             ["/usr/bin/dmesg", "--facility=kern", "--level=info,err"], stdout=subprocess.PIPE
-        )
-        if dmesg.stdout is None:
-            return []
-        prev = b""
-        timestamp = None
-        for line in dmesg.stdout:
-            line = prev + line
-            if not line.endswith(b"\n"):
-                prev = line
-            else:
-                prev = b""
-                message = line.decode().rstrip("\n")
+        ) as dmesg:
+            if dmesg.stdout is None:
+                return []
+            prev = b""
+            timestamp = None
+            for line in dmesg.stdout:
+                line = prev + line
+                if not line.endswith(b"\n"):
+                    prev = line
+                else:
+                    prev = b""
+                    message = line.decode().rstrip("\n")
 
-                # Cannot use --follow (not working in a container) and cannot specify a position in the logs
-                # where to start. So, we need to read everything from the start and ignore the logs we've
-                # already seen.
-                timestamp_match = TIMESTAMP_RE.match(message)
-                if not timestamp_match:
-                    continue
-                timestamp = float(timestamp_match.group(1))
-                if self._prev_timestamp is not None and self._prev_timestamp >= timestamp:
-                    continue
+                    # Cannot use --follow (not working in a container) and cannot specify a position in the
+                    # logs where to start. So, we need to read everything from the start and ignore the logs
+                    # we've already seen.
+                    timestamp_match = TIMESTAMP_RE.match(message)
+                    if not timestamp_match:
+                        continue
+                    timestamp = float(timestamp_match.group(1))
+                    if self._prev_timestamp is not None and self._prev_timestamp >= timestamp:
+                        continue
 
-                LOG.debug("message: <%s>", message)
-                start_match = START_RE.match(message)
-                pod_match = CONTAINER_RE.match(message)
-                oom_match = OOM_RE.match(message)
-                if start_match:
-                    if pod_infos is None:
-                        pod_infos = kube.get_pod_infos()
-                    self._get_cur().add_start_info(start_match, pod_infos)
-                elif pod_match:
-                    self._get_cur().add_pod_info(pod_match)
-                elif oom_match:
-                    if self._cur is not None and self._cur.add_oom_info(oom_match):
-                        ooms.append(self._cur)
-                    self._cur = None
-        if timestamp is not None:
-            self._prev_timestamp = timestamp
-        dmesg.wait()
+                    LOG.debug("message: <%s>", message)
+                    start_match = START_RE.match(message)
+                    pod_match = CONTAINER_RE.match(message)
+                    oom_match = OOM_RE.match(message)
+                    if start_match:
+                        if pod_infos is None:
+                            pod_infos = kube.get_pod_infos()
+                        self._get_cur().add_start_info(start_match, pod_infos)
+                    elif pod_match:
+                        self._get_cur().add_pod_info(pod_match)
+                    elif oom_match:
+                        if self._cur is not None and self._cur.add_oom_info(oom_match):
+                            ooms.append(self._cur)
+                        self._cur = None
+            if timestamp is not None:
+                self._prev_timestamp = timestamp
+            dmesg.wait()
         return ooms
