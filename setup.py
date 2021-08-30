@@ -4,14 +4,15 @@ from setuptools import find_packages, setup
 
 VERSION = "1.0.0"
 HERE = os.path.abspath(os.path.dirname(__file__))
-INSTALL_REQUIRES = [
-    pkg.split("==")[0] for pkg in open(os.path.join(HERE, "requirements.txt")).read().splitlines()
-]
+INSTALL_REQUIRES = []
+with open(os.path.join(HERE, "requirements.txt"), encoding="utf-8") as requirements:
+    INSTALL_REQUIRES = [pkg.split("==")[0] for pkg in requirements.read().splitlines()]
 
 
 def long_description() -> str:
     try:
-        return open("README.md").read()
+        with open("README.md", encoding="utf-8") as readme:
+            return readme.read()
     except FileNotFoundError:
         return ""
 
