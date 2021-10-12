@@ -18,6 +18,8 @@ LOG = logging.getLogger("es_oom_exporter")
 
 
 class OomsCollector:
+    """Collect the OOM."""
+
     def __init__(self, kube: Kubernetes, message_reader: MessageReader) -> None:
         self.kube = kube
         self.message_reader = message_reader
@@ -79,6 +81,7 @@ class OomsCollector:
 
 
 def main() -> None:
+    """Run the command."""
     logging.config.fileConfig("/app/production.ini", defaults=dict(os.environ))
     logging.getLogger("kubernetes").setLevel(logging.INFO)
     if "ES_URL" in os.environ:

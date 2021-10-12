@@ -10,6 +10,7 @@ with open(os.path.join(HERE, "requirements.txt"), encoding="utf-8") as requireme
 
 
 def long_description() -> str:
+    """Get the long description."""
     try:
         with open("README.md", encoding="utf-8") as readme:
             return readme.read()

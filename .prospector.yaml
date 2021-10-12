@@ -1,8 +1,8 @@
 strictness: veryhigh
+max-line-length: 110
+doc-warnings: True
 
 pylint:
-  options:
-    max-line-length: 110
   disable:
     - too-many-instance-attributes
     - too-many-locals
@@ -10,11 +10,23 @@ pylint:
     - invalid-name
     - no-else-return
     - wrong-import-order
+    - missing-module-docstring
+    - missing-function-docstring
 
 pep8:
   disable:
     - E501 # line too long error
     - E722 # do not use bare 'except
+
+pep257:
+  disable:
+    - D100 # Missing docstring in public module
+    - D102 # Missing docstring in public method
+    - D104 # Missing docstring in public package
+    - D105 # Missing docstring in magic method
+    - D107 # Missing docstring in __init__
+    - D203 # 1 blank line required before class docstring (found 0)
+    - D212 # Multi-line docstring summary should start at the first line
 
 mypy:
   run: True

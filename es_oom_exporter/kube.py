@@ -13,6 +13,8 @@ NAMESPACE = os.environ.get("NAMESPACE")
 
 
 class Kubernetes:
+    """Get some additional the information about the kubernetes contest."""
+
     def __init__(self) -> None:
         if os.path.exists(SERVICE_TOKEN_FILENAME):
             load_incluster_config()

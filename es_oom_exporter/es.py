@@ -35,6 +35,8 @@ OOM_RE = re.compile(
 
 
 class ElasticSearch(MessageReader):
+    """Read the message from elastic search."""
+
     def __init__(self) -> None:
         es_url = ensure_slash(os.environ["ES_URL"])
         es_indexes = os.environ.get("ES_INDEXES", "_all")
