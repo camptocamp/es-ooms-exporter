@@ -8,6 +8,8 @@ SIZES = {"K": 1024, "M": 1024 * 1024, "G": 1024 * 1024 * 1024}
 
 
 class Oom:
+    """Metadata information about the detected OOM."""
+
     def __init__(self, host: str):
         self._host = host
         self._pod_uid: Optional[str] = None

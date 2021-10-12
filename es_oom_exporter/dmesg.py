@@ -31,6 +31,8 @@ OOM_RE = re.compile(
 
 
 class Dmesg(MessageReader):
+    """Read the message from dmesg."""
+
     def __init__(self) -> None:
         self._node_name = os.environ["NODE_NAME"]
         self._cur: Optional[Oom] = None
