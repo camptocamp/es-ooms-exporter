@@ -13,7 +13,7 @@ pyramid = "==2.0"
 [dev-packages]
 prospector = {version = "==1.5.1", extras = ["with_bandit", "with_mypy"]}
 flake8 = "==3.9.2"
-types-requests = "==2.25.10"
+types-requests = "==2.25.11"
 
 [requires]
 python_version = "3.8"
