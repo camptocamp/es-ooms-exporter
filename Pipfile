@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 prometheus-client = "==0.12.0"
-kubernetes = "==19.15.0"
+kubernetes = "==20.13.0"
 c2cwsgiutils = "==4.1.4"
 cee-syslog-handler = "==0.6.0"
 pyramid = "==2.0"

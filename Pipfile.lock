@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "333aad55fb11eef4f1b89df60ff72d2ffa7dafc73233bd3cb9d7c0e878c4f6df"
+            "sha256": "afb25171776d354da7e749e8b2ac15c32573049e924dd26be969b8385c83d18c"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -80,11 +80,11 @@
         },
         "kubernetes": {
             "hashes": [
-                "sha256:08c93f300a9837104282ecc81458b903a56444c5c1ec3d990d237557312af47f",
-                "sha256:52312adda60d92ba45b325f2c1505924656389222005f7e089718e1ad03bc07f"
+                "sha256:7d32ea7f555813a141a0e912e7695d88f7213bb632a860ba79a963b43f7a6b18",
+                "sha256:ce5e881c13dc56f21a243804f90bc3c507af93c380f505c00e392c823968e4de"
             ],
             "index": "pypi",
-            "version": "==19.15.0"
+            "version": "==20.13.0"
         },
         "oauthlib": {
             "hashes": [
