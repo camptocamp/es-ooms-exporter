@@ -5,6 +5,7 @@ from typing import Any, Dict, Match, Optional
 LOG = logging.getLogger(__name__)
 SIZE_RE = re.compile(r"^(\d+)([KMG])B$")
 SIZES = {"K": 1024, "M": 1024 * 1024, "G": 1024 * 1024 * 1024}
+CG_RE = re.compile(r"/kubepods/(?:burstable/)?pod([0-9a-f_-]*)/([0-9a-f]*)")
 
 
 class Oom:
@@ -14,7 +15,6 @@ class Oom:
         self._host = host
         self._pod_uid: Optional[str] = None
         self._process: Optional[str] = None
-        self._when: Optional[str] = None
         self._container_uid: Optional[str] = None
         self._containers_rss: Dict[str, float] = {}
         self._pod_name: Optional[str] = None
@@ -32,15 +32,7 @@ class Oom:
         self._container_uid = matcher.group(3)
         pod_info = pod_infos.get(pod_uid)
         if pod_info is not None:
-            self._pod_name = pod_info["pod_name"]
-            self._namespace = pod_info["namespace"]
-            self._release = pod_info["release"]
-            self._service = pod_info["service"]
-            container_info = pod_info["containers"].get(self._container_uid)
-            if container_info is not None:
-                self._container = container_info
-            else:
-                LOG.info("Didn't find container info for %s", matcher.group(0))
+            self._add_kubernetes_pod_info(pod_info)
         else:
             LOG.debug(
                 "Didn't find POD info for %s in [%s]: %s", pod_uid, ", ".join(pod_infos), matcher.group(0)
@@ -61,6 +53,38 @@ class Oom:
     def add_oom_info(self, matcher: Match[str]) -> bool:
         self._process = matcher.group(2)
         return self._container is not None
+
+    def add_oom_kill_info(self, fields: Dict[str, str], pod_infos: Dict[str, Any]) -> bool:
+        pod_match = CG_RE.match(fields.get("task_memcg", ""))
+        if not pod_match:
+            LOG.warning("Cannot find POD info in %s", fields)
+            return False
+        pod_uid = pod_match.group(1).replace("_", "-")
+        if self._pod_uid is not None:
+            LOG.warning("Inconsistent logs (twice the start): %s", fields)
+            return False
+        self._pod_uid = pod_uid
+        self._container_uid = pod_match.group(2)
+        pod_info = pod_infos.get(pod_uid)
+        if pod_info is not None:
+            self._add_kubernetes_pod_info(pod_info)
+        else:
+            LOG.info("Didn't find POD info for %s in [%s]: %s", pod_uid, ", ".join(pod_infos), fields)
+            return False
+        self._process = fields.get("task")
+        return True
+
+    def _add_kubernetes_pod_info(self, pod_info: Any) -> None:
+        self._pod_name = pod_info["pod_name"]
+        self._namespace = pod_info["namespace"]
+        self._release = pod_info["release"]
+        self._service = pod_info["service"]
+        container_info = pod_info["containers"].get(self._container_uid)
+        if container_info is not None:
+            self._container = container_info
+        else:
+            LOG.info("Didn't find container info for %s/%s", pod_info["pod_name"], self._container_uid)
+            self._container = "unknown"
 
     def get_release(self) -> Optional[str]:
         return self._release
