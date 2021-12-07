@@ -21,6 +21,7 @@ RUN pipenv sync --system --clear --dev
 COPY . .
 RUN python3 -m pip install --no-cache-dir --disable-pip-version-check --no-deps --editable=.
 RUN prospector --output=pylint
+RUN pytest
 
 FROM base AS runner
 
