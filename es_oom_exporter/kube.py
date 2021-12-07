@@ -43,16 +43,16 @@ class Kubernetes:
             status = pod.status
             containers = {}
             for statuses in (status.container_statuses, status.init_container_statuses):
-                if statuses is not None:
-                    for container_status in statuses:
-                        if container_status.container_id is not None:
-                            containers[
-                                container_status.container_id.replace("docker://", "")
-                            ] = container_status.name
-                        if container_status.last_state.terminated is not None:
-                            containers[
-                                container_status.last_state.terminated.container_id.replace("docker://", "")
-                            ] = container_status.name
+                if statuses is None:
+                    continue
+                for container_status in statuses:
+                    for location in (
+                        container_status,
+                        container_status.last_state.terminated,
+                        container_status.state.terminated,
+                    ):
+                        if location is not None and location.container_id is not None:
+                            containers[location.container_id.replace("docker://", "")] = container_status.name
             results[md.uid] = {
                 "namespace": md.namespace,
                 "release": md.labels.get("release", md.labels.get("app.kubernetes.io/instance")),
