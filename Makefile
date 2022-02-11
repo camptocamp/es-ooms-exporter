@@ -1,4 +1,4 @@
-all: docker
+all: build
 
 .venv/timestamp: requirements.txt Makefile Pipfile
 	/usr/bin/python3 -m virtualenv .venv
@@ -14,10 +14,11 @@ all: docker
 tests: .venv/timestamp
 	.venv/bin/pytest
 
+.PHONY: fix
 fix: .venv/bin/c2cciutils-checks
 	(source .venv/bin/activate; c2cciutils-checks --fix --check black)
 	(source .venv/bin/activate; c2cciutils-checks --fix --check isort)
 
-.PHONY: docker
-docker:
+.PHONY: build
+build:
 	docker build --tag camptocamp/es-ooms-exporter:latest .
