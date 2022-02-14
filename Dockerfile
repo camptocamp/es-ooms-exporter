@@ -36,7 +36,7 @@ COPY . .
 RUN python3 -m pip install --no-cache-dir --disable-pip-version-check --no-deps --editable=. && \
     python3 -m compileall -q .
 
-CMD ["/usr/local/bin/es-oom-exporter"]
+CMD ["/usr/bin/es-oom-exporter"]
 ENV OTHER_LOG_LEVEL=WARN \
     LOG_LEVEL=INFO \
     C2CWSGIUTILS_LOG_LEVEL=WARN \
