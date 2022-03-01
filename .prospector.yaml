@@ -13,12 +13,12 @@ pylint:
     - missing-module-docstring
     - missing-function-docstring
 
-pep8:
+pycodestyle:
   disable:
     - E501 # line too long error
     - E722 # do not use bare 'except
 
-pep257:
+pydocstyle:
   disable:
     - D100 # Missing docstring in public module
     - D102 # Missing docstring in public method
