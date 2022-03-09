@@ -11,7 +11,7 @@ cee-syslog-handler = "==0.6.0"
 pyramid = "==2.0"
 
 [dev-packages]
-prospector = {version = "==1.7.6", extras = ["with_bandit", "with_mypy"]}
+prospector = {version = "==1.7.7", extras = ["with_bandit", "with_mypy"]}
 flake8 = "==4.0.1"
 types-requests = "==2.27.11"
 pytest = "==7.0.1"
