@@ -1,7 +1,7 @@
 import logging.config
 import os
 import time
-from typing import Dict, Iterator, List, Union
+from typing import Dict, Iterator, List, Union, cast
 
 import prometheus_client.exposition
 import prometheus_client.registry
@@ -18,7 +18,7 @@ LABELS = ["namespace", "pod", "container", "process", "host"]
 LOG = logging.getLogger("es_oom_exporter")
 
 
-class OomsCollector:
+class OomCollector(prometheus_client.registry.Collector):
     """Collect the OOM."""
 
     def __init__(self, kube: Kubernetes, message_reader: MessageReader) -> None:
@@ -32,15 +32,15 @@ class OomsCollector:
                 "pod_process_oom",
                 "OOM events in a POD's container",
                 labels=LABELS,
-            )  # type: ignore
+            )
             g_rss_killed = GaugeMetricFamily(
                 "pod_process_oom_rss_container",
                 "RSS in bytes before an OOM events in a POD's container",
                 labels=LABELS,
-            )  # type: ignore
+            )
             g_rss = GaugeMetricFamily(
                 "pod_process_oom_rss", "RSS in bytes before an OOM events in a POD's container", labels=LABELS
-            )  # type: ignore
+            )
             count_containers: Dict[str, int] = {}
             rss_containers: Dict[str, Union[float, str]] = {}
             rss_killed_container: Dict[str, Union[float, str]] = {}
@@ -74,9 +74,9 @@ class OomsCollector:
                     rss_containers[key],
                     rss_killed_container[key],
                 )
-                g_oom.add_metric(labels=key, value=count_container)  # type: ignore
-                g_rss.add_metric(labels=key, value=rss_containers[key])  # type: ignore
-                g_rss_killed.add_metric(labels=key, value=rss_killed_container[key])  # type: ignore
+                g_oom.add_metric(labels=key, value=count_container)
+                g_rss.add_metric(labels=key, value=cast(float, rss_containers[key]))
+                g_rss_killed.add_metric(labels=key, value=cast(float, rss_killed_container[key]))
 
             yield g_oom
             yield g_rss_killed
@@ -94,8 +94,8 @@ def main() -> None:
     else:
         message_reader = Dmesg()
     kube = Kubernetes()
-    prometheus_client.registry.REGISTRY.register(OomsCollector(kube, message_reader))  # type: ignore
-    prometheus_client.exposition.start_http_server(port=8080)  # type: ignore
+    prometheus_client.registry.REGISTRY.register(OomCollector(kube, message_reader))
+    prometheus_client.exposition.start_http_server(port=8080)
     while True:
         time.sleep(10)
 

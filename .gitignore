@@ -1,2 +1,3 @@
-/.venv
 __pycache__/
+/.venv
+/es_oom_exporter.egg-info/
