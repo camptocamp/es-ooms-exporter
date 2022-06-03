@@ -1,4 +1,4 @@
-FROM ubuntu:20.04 AS base
+FROM ubuntu:22.04 AS base
 
 # Workaround for setuptools >= 60.0.0
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib \
