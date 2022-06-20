@@ -1,39 +1,58 @@
-FROM ubuntu:22.04 AS base
+FROM ubuntu:22.04 AS base-all
+LABEL maintainer Camptocamp "info@camptocamp.com"
+SHELL ["/bin/bash", "-o", "pipefail", "-cux"]
 
-# Workaround for setuptools >= 60.0.0
-ENV SETUPTOOLS_USE_DISTUTILS=stdlib \
-  DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update \
+RUN --mount=type=cache,target=/var/lib/apt/lists \
+  --mount=type=cache,target=/var/cache,sharing=locked \
+  apt-get update \
+  && apt-get upgrade --assume-yes \
   && apt-get install --assume-yes --no-install-recommends python3-pip \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache/*
+  && python3 -m pip install --disable-pip-version-check --upgrade pip
+
+# Used to convert the locked packages by poetry to pip requirements format
+# We don't directly use `poetry install` because it force to use a virtual environment.
+FROM base-all as poetry
+
+# Install Poetry
+WORKDIR /tmp
+COPY requirements.txt ./
+RUN --mount=type=cache,target=/root/.cache \
+  python3 -m pip install --disable-pip-version-check --requirement=requirements.txt
+
+# Do the conversion
+COPY poetry.lock pyproject.toml ./
+RUN poetry export --output=requirements.txt \
+  && poetry export --dev --output=requirements-dev.txt
+
+# Base, the biggest thing is to install the Python packages
+FROM base-all as base
 
 WORKDIR /app
-COPY requirements.txt .
-RUN python3 -m pip install --no-cache-dir --requirement=requirements.txt
 
-COPY Pipfile* ./
-RUN apt-get update \
+RUN --mount=type=cache,target=/var/lib/apt/lists \
+  --mount=type=cache,target=/var/cache,sharing=locked \
+  --mount=type=cache,target=/root/.cache \
+  --mount=type=bind,from=poetry,source=/tmp,target=/poetry \
+  apt-get update \
   && apt-get install --assume-yes --no-install-recommends python3-dev gcc libpq-dev \
-  && pipenv sync --system --clear \
-  && apt-get autoremove --assume-yes python3-dev gcc libpq-dev \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache/*
+  && python3 -m pip install --disable-pip-version-check --no-deps --requirement=/poetry/requirements.txt \
+  && apt-get autoremove --assume-yes python3-dev gcc libpq-dev
 
-FROM base AS checks
+FROM base AS checker
 
-RUN pipenv sync --system --clear --dev
+RUN --mount=type=cache,target=/root/.cache \
+  --mount=type=bind,from=poetry,source=/tmp,target=/poetry \
+  python3 -m pip install --disable-pip-version-check --no-deps --requirement=/poetry/requirements-dev.txt
 
 COPY . .
-RUN python3 -m pip install --no-cache-dir --disable-pip-version-check --no-deps --editable=. \
-  && prospector -X --output=pylint \
-  && pytest
+RUN --mount=type=cache,target=/root/.cache \
+  python3 -m pip install --disable-pip-version-check --no-deps --editable=.
 
 FROM base AS runner
 
 COPY . .
-RUN python3 -m pip install --no-cache-dir --disable-pip-version-check --no-deps --editable=. \
+RUN --mount=type=cache,target=/root/.cache \
+  python3 -m pip install --disable-pip-version-check --no-deps --editable=. \
   && python3 -m compileall -q .
 
 CMD ["/usr/local/bin/es-oom-exporter"]
