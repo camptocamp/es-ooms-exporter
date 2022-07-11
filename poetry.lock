@@ -367,7 +367,7 @@ plugins = ["setuptools"]
 
 [[package]]
 name = "kubernetes"
-version = "23.6.0"
+version = "24.2.0"
 description = "Kubernetes python client"
 category = "main"
 optional = false
@@ -1300,7 +1300,7 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.11"
-content-hash = "afec28a315d18e82559f02719f84e9cd2473fea3e4267a413e47db157d85d039"
+content-hash = "14a3d0f6185c56cccf2738a3032302785057ef077a33d79da797627a5ff29d96"
 
 [metadata.files]
 alembic = [
@@ -1471,8 +1471,8 @@ isort = [
     {file = "isort-5.10.1.tar.gz", hash = "sha256:e8443a5e7a020e9d7f97f1d7d9cd17c88bcb3bc7e218bf9cf5095fe550be2951"},
 ]
 kubernetes = [
-    {file = "kubernetes-23.6.0-py2.py3-none-any.whl", hash = "sha256:dd58e286a53071bc8e32041f07f3c2236b3ed8ca5b9f57794a5077358f7ccb06"},
-    {file = "kubernetes-23.6.0.tar.gz", hash = "sha256:cadb1cd7c44eae5b39b50316313343c0f2aff94529f067ec2ba44d38411158e3"},
+    {file = "kubernetes-24.2.0-py2.py3-none-any.whl", hash = "sha256:da19d58865cf903a8c7b9c3691a2e6315d583a98f0659964656dfdf645bf7e49"},
+    {file = "kubernetes-24.2.0.tar.gz", hash = "sha256:9900f12ae92007533247167d14cdee949cd8c7721f88b4a7da5f5351da3834cd"},
 ]
 lazy-object-proxy = [
     {file = "lazy-object-proxy-1.7.1.tar.gz", hash = "sha256:d609c75b986def706743cdebe5e47553f4a5a1da9c5ff66d76013ef396b5a8a4"},
