@@ -111,8 +111,8 @@ waitress = {version = "*", optional = true, markers = "extra == \"standard\""}
 "zope.sqlalchemy" = {version = "*", optional = true, markers = "extra == \"standard\""}
 
 [package.extras]
-standard = ["zope.sqlalchemy", "zope.interface", "waitress", "ujson", "sqlalchemy-utils", "sqlalchemy", "sentry-sdk", "requests-oauthlib", "requests", "pyyaml", "pyramid-tm", "pyramid", "pyjwt", "psycopg2", "pipfile", "objgraph", "netifaces", "lxml", "gunicorn", "cornice", "cee-syslog-handler", "boltons", "alembic"]
 broadcast = ["redis"]
+standard = ["alembic", "boltons", "cee-syslog-handler", "cornice", "gunicorn", "lxml", "netifaces", "objgraph", "pipfile", "psycopg2", "pyjwt", "pyramid", "pyramid-tm", "pyyaml", "requests", "requests-oauthlib", "sentry-sdk", "sqlalchemy", "sqlalchemy-utils", "ujson", "waitress", "zope.interface", "zope.sqlalchemy"]
 
 [[package]]
 name = "cachetools"
