@@ -1,3 +1,4 @@
 __pycache__/
 /.venv
 /es_oom_exporter.egg-info/
+/.github/changelog-generator-cache
