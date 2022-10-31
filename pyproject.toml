@@ -26,7 +26,7 @@ authors = []
 [tool.poetry.dependencies]
 python = ">=3.8,<3.11"
 prometheus-client = "0.15.0"
-kubernetes = "24.2.0"
+kubernetes = "25.3.0"
 c2cwsgiutils = { extras = ["standard"], version = "5.1.5" }
 cee-syslog-handler = "0.6.0"
 pyramid = "2.0"
