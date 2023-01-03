@@ -12,10 +12,10 @@ LOG = logging.getLogger(__name__)
 TIMESTAMP_RE = re.compile(r"\[\s*(\d+\.\d+)\].*")
 
 # Interesting messages in dmesg with old kernels:
-# [21013.577527] Task in /kubepods/burstable/podaf389229-5fc5-4617-ae95-9160d576eb49/3b3d031aca1bab63c359a8aac8c18e373ac90373faf12c69e5225aec01fc9c84 killed as a result of limit of /kubepods/burstable/podaf389229-5fc5-4617-ae95-9160d576eb49  # noqa: E501
-# [21013.577527] Memory cgroup stats for /kubepods/burstable/podaf389229-5fc5-4617-ae95-9160d576eb49: cache:0KB rss:0KB rss_huge:0KB shmem:0KB mapped_file:0KB dirty:0KB writeback:0KB swap:0KB inactive_anon:0KB active_anon:0KB inactive_file:0KB active_file:0KB unevictable:0KB  # noqa: E501
-# [21013.577527] Memory cgroup stats for /kubepods/burstable/podaf389229-5fc5-4617-ae95-9160d576eb49/4c08772ec23ea2f82822e90f1d41c028b43eb01f0bfc18ea262ae4ccbc6189de: cache:0KB rss:36KB rss_huge:0KB shmem:0KB mapped_file:0KB dirty:0KB writeback:0KB swap:0KB inactive_anon:0KB active_anon:36KB inactive_file:0KB active_file:0KB unevictable:0KB  # noqa: E501
-# [21013.577527] Memory cgroup out of memory: Kill process 8308 (java) score 1894 or sacrifice child  # noqa: E501
+# [21013.577527] Task in /kubepods/burstable/podaf389229-5fc5-4617-ae95-9160d576eb49/3b3d031aca1bab63c359a8aac8c18e373ac90373faf12c69e5225aec01fc9c84 killed as a result of limit of /kubepods/burstable/podaf389229-5fc5-4617-ae95-9160d576eb49  # pylint: disable=line-too-long
+# [21013.577527] Memory cgroup stats for /kubepods/burstable/podaf389229-5fc5-4617-ae95-9160d576eb49: cache:0KB rss:0KB rss_huge:0KB shmem:0KB mapped_file:0KB dirty:0KB writeback:0KB swap:0KB inactive_anon:0KB active_anon:0KB inactive_file:0KB active_file:0KB unevictable:0KB  # pylint: disable=line-too-long
+# [21013.577527] Memory cgroup stats for /kubepods/burstable/podaf389229-5fc5-4617-ae95-9160d576eb49/4c08772ec23ea2f82822e90f1d41c028b43eb01f0bfc18ea262ae4ccbc6189de: cache:0KB rss:36KB rss_huge:0KB shmem:0KB mapped_file:0KB dirty:0KB writeback:0KB swap:0KB inactive_anon:0KB active_anon:36KB inactive_file:0KB active_file:0KB unevictable:0KB  # pylint: disable=line-too-long
+# [21013.577527] Memory cgroup out of memory: Kill process 8308 (java) score 1894 or sacrifice child
 START_RE = re.compile(
     r"\[\s*(\d+\.\d+)\] Task in /kubepods/(?:burstable/)?pod([0-9a-f_-]*)/([0-9a-f]*) killed as a result of "
     r"limit of /kubepods/(?:burstable/)?pod[0-9a-f_-]*"
@@ -30,7 +30,7 @@ OOM_RE = re.compile(
 )
 
 # Interesting messages in dmesg with new kernels:
-# [10657070.816698] oom-kill:constraint=CONSTRAINT_MEMCG,nodemask=(null),cpuset=7a982186b58cec345c4a3f635809c7e04afc930453a5dbb5cbc9d4d49f662761,mems_allowed=0,oom_memcg=/kubepods/burstable/pod792adfde-d139-4c9c-a89e-ae94f36ea69d/7a982186b58cec345c4a3f635809c7e04afc930453a5dbb5cbc9d4d49f662761,task_memcg=/kubepods/burstable/pod792adfde-d139-4c9c-a89e-ae94f36ea69d/7a982186b58cec345c4a3f635809c7e04afc930453a5dbb5cbc9d4d49f662761,task=ruby,pid=10506,uid=1000  # noqa: E501
+# [10657070.816698] oom-kill:constraint=CONSTRAINT_MEMCG,nodemask=(null),cpuset=7a982186b58cec345c4a3f635809c7e04afc930453a5dbb5cbc9d4d49f662761,mems_allowed=0,oom_memcg=/kubepods/burstable/pod792adfde-d139-4c9c-a89e-ae94f36ea69d/7a982186b58cec345c4a3f635809c7e04afc930453a5dbb5cbc9d4d49f662761,task_memcg=/kubepods/burstable/pod792adfde-d139-4c9c-a89e-ae94f36ea69d/7a982186b58cec345c4a3f635809c7e04afc930453a5dbb5cbc9d4d49f662761,task=ruby,pid=10506,uid=1000  # pylint: disable=line-too-long
 OOM_KILL_RE = re.compile(r"\[\s*(\d+\.\d+)\] oom-kill:(.*)")
 
 
