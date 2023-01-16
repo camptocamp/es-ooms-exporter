@@ -1108,14 +1108,14 @@ twisted = ["twisted"]
 
 [[package]]
 name = "prospector"
-version = "1.8.3"
+version = "1.8.4"
 description = "Prospector is a tool to analyse Python code by aggregating the result of other tools."
 category = "dev"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "prospector-1.8.3-py3-none-any.whl", hash = "sha256:75d65a6f40682f25ea6f69dc12add9f921dbafdd307bf27aa099728f89d77b67"},
-    {file = "prospector-1.8.3.tar.gz", hash = "sha256:b674b619e1b9923eb750aea4ccda6254d2ebaca11eb1c43fbddf019a7cfcc5cb"},
+    {file = "prospector-1.8.4-py3-none-any.whl", hash = "sha256:4a9584544cf8d118574567a669b85456d036444597f0664185263e229055cdf6"},
+    {file = "prospector-1.8.4.tar.gz", hash = "sha256:60db5b6046a523248a1b32fb2daa8080d3f406da822ad95cff8cd9f153e04555"},
 ]
 
 [package.dependencies]
@@ -1125,6 +1125,7 @@ flake8 = "<6.0.0"
 GitPython = ">=3.1.27,<4.0.0"
 mccabe = ">=0.7.0,<0.8.0"
 mypy = {version = ">=0.600", optional = true, markers = "extra == \"with_mypy\" or extra == \"with_everything\""}
+packaging = "<22.0"
 pep8-naming = ">=0.3.3,<=0.10.0"
 pycodestyle = ">=2.9.0"
 pydocstyle = ">=2.0.0"
@@ -1412,14 +1413,14 @@ testing = ["WebTest", "coverage (>=5.0)", "pytest", "pytest-cov"]
 
 [[package]]
 name = "pytest"
-version = "7.2.0"
+version = "7.2.1"
 description = "pytest: simple powerful testing with Python"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pytest-7.2.0-py3-none-any.whl", hash = "sha256:892f933d339f068883b6fd5a459f03d85bfcb355e4981e146d2c7616c21fef71"},
-    {file = "pytest-7.2.0.tar.gz", hash = "sha256:c4014eb40e10f11f355ad4e3c2fb2c6c6d1919c73f3b5a433de4708202cade59"},
+    {file = "pytest-7.2.1-py3-none-any.whl", hash = "sha256:c7c6ca206e93355074ae32f7403e8ea12163b1163c976fee7d4d84027c162be5"},
+    {file = "pytest-7.2.1.tar.gz", hash = "sha256:d45e0952f3727241918b8fd0f376f5ff6b301cc0777c6f9a556935c92d8a7d42"},
 ]
 
 [package.dependencies]
@@ -2252,4 +2253,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.11"
-content-hash = "b41e41d87e3945a84cf268fa9d87221aae14a582dc7c4e7c00e63bff5d5b0e74"
+content-hash = "3995c7ccddab5cfe2b03f11ba7d74cb5e6b693fa67c1d64df5a041f0aaa87734"
