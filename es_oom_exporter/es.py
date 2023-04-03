@@ -82,7 +82,7 @@ class ElasticSearch(MessageReader):
                 {"range": {"@timestamp": {"gt": self.last_timestamp, "format": "epoch_millis"}}}
             )
         LOG.info("Doing query: %s", json.dumps(query))
-        with requests.post(self.search_url, json=query, headers=self.search_headers) as r:
+        with requests.post(self.search_url, json=query, headers=self.search_headers, timeout=30) as r:
             r.raise_for_status()
             json_responce = r.json()
             hits = json_responce["hits"]["hits"]
