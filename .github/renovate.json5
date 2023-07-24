@@ -44,5 +44,10 @@
       separateMajorMinor: false,
       separateMinorPatch: false,
     },
+    /** Desable on master branch */
+    {
+      matchBaseBranches: ['master'],
+      enabled: false,
+    },
   ],
 }
