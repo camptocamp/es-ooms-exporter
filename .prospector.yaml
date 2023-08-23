@@ -1,6 +1,8 @@
+inherits:
+  - duplicated
 strictness: veryhigh
 max-line-length: 110
-doc-warnings: True
+doc-warnings: true
 
 pylint:
   disable:
@@ -9,7 +11,6 @@ pylint:
     - too-few-public-methods
     - invalid-name
     - no-else-return
-    - wrong-import-order
     - missing-module-docstring
     - missing-function-docstring
     - missing-timeout # Default timeout set by c2cwsgiutils
@@ -21,7 +22,6 @@ pycodestyle:
 
 pydocstyle:
   disable:
-    - D100 # Missing docstring in public module
     - D102 # Missing docstring in public method
     - D104 # Missing docstring in public package
     - D105 # Missing docstring in magic method
@@ -30,11 +30,11 @@ pydocstyle:
     - D212 # Multi-line docstring summary should start at the first line
 
 mypy:
-  run: True
-  ignore-missing-import: True
+  run: true
+  ignore-missing-import: true
 
 mccabe:
-  run: False
+  run: false
 
 bandit:
-  run: True
+  run: true

@@ -87,6 +87,8 @@ repos:
           - --tool=pydocstyle
           - --die-on-tool-error
           - --output-format=pylint
+        additional_dependencies:
+          - prospector-profile-duplicated==0.1.0 # pypi
 ci:
   autoupdate_schedule: quarterly
   skip:
